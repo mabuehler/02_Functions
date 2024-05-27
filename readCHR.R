@@ -31,8 +31,10 @@ readCHR <- function(x){
 			dt1 <- suppressMessages(as.data.table(read_xls(file,skip=i_skip[1])))
 		}
 		setnames(dt1, c('CKR','Birth','Import','Heardnumber_import','Export','Export_place','Heardnumber_export','Sex','Race','CKR_mother'))
+		
 		# make sure that columns have the same class even if they are empty! --- missing
-
+		dt1[, c('Import','Heardnumber_import','Export_place','Heardnumber_export') := lapply(.SD, as.character), .SDcols = c('Import','Heardnumber_import','Export_place','Heardnumber_export')]
+		dt1[,Export := as.POSIXct(Export)]
 
 		##### add info about barn:
 		h1 <- suppressMessages(as.data.table(read_xls(file,range=paste0('A1:B',i_range+2),col_names=FALSE)))
@@ -54,10 +56,14 @@ readCHR <- function(x){
 		dt1[,Address := address]
 		dt1[,Period := period]
 		
-		dt1
+
+	# calculate age in months based on the middle of the period
+	dt1[, Age_months := round(as.numeric(difftime(as.POSIXct(gsub("(.*) - (.*)", "\\1", Period), format = "%d.%m.%Y")+(as.POSIXct(gsub("(.*) - (.*)", "\\2", Period), format = "%d.%m.%Y") - 
+	    	as.POSIXct(gsub("(.*) - (.*)", "\\1", Period), format = "%d.%m.%Y")) / 2, Birth, units = "days") / 30.44),0)]
+	dt1
 })
 
 	out <- rbindlist(dt_out)
-	print(out)
+	out
 }
 
