@@ -58,8 +58,8 @@ readCHR <- function(x){
 		
 
 	# calculate age in months based on the middle of the period
-	dt1[, Age_months := round(as.numeric(difftime(as.POSIXct(gsub("(.*) - (.*)", "\\1", Period), format = "%d.%m.%Y")+(as.POSIXct(gsub("(.*) - (.*)", "\\2", Period), format = "%d.%m.%Y") - 
-	    	as.POSIXct(gsub("(.*) - (.*)", "\\1", Period), format = "%d.%m.%Y")) / 2, Birth, units = "days") / 30.44),0)]
+	dt1[, Age_days := round(as.numeric(difftime(as.POSIXct(gsub("(.*) - (.*)", "\\1", Period), format = "%d.%m.%Y")+(as.POSIXct(gsub("(.*) - (.*)", "\\2", Period), format = "%d.%m.%Y") - 
+	    	as.POSIXct(gsub("(.*) - (.*)", "\\1", Period), format = "%d.%m.%Y")) / 2, Birth, units = "days")),0)]
 	dt1
 })
 
