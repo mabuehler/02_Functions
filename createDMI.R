@@ -5,11 +5,9 @@ library(plotly)
 library(httr)
 library(jsonlite)
 
-createDMI <- function(API,cellId,req_datetime){
+createDMI <- function(API,cellId,req_datetime,req_parameter=c('mean_temp', 'mean_wind_dir','mean_wind_speed','mean_pressure','acc_precip',url='https://dmigw.govcloud.dk/v2/climateData/collections/10kmGridValue/items?'),resolution='hour'){
 ##### Define variables that are always the same:
-url <- 'https://dmigw.govcloud.dk/v2/climateData/collections/10kmGridValue/items?' # url for accessing grid data
-req_parameter <- c('mean_temp', 'mean_wind_dir','mean_wind_speed','mean_pressure','acc_precip') # parameters I wanna have
-timeResolution <- 'timeResolution=hour'
+timeResolution <- paste0('timeResolution=',resolution)
 limit <- 'limit=300000' # max data
 
 date_list <- lapply(req_datetime, function(j){
