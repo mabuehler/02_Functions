@@ -14,38 +14,38 @@ library(sf)
 
 create_polygons <- function(left,bottom,right,top,feature='building',transform=TRUE,rename=TRUE){
 
-assign("has_internet_via_proxy", TRUE, environment(curl::has_internet)) # otherwise for unknow reason it does not work.
+  assign("has_internet_via_proxy", TRUE, environment(curl::has_internet)) # otherwise for unknow reason it does not work.
 
-## extract data according to coordinates
-bbox <- opq(c(left,bottom,right,top))
-osm_feature <- add_osm_feature(bbox,key = feature)
-data_raw <- osmdata_sf(osm_feature)
+  ## extract data according to coordinates
+  bbox <- opq(c(left,bottom,right,top))
+  osm_feature <- add_osm_feature(bbox,key = feature)
+  data_raw <- osmdata_sf(osm_feature)
 
-# Extract polygon data
-geometry_polygons <- data_raw$osm_polygons
-## transform to Danish coordinate system
-if(transform){geometry_polygons$geometry <- st_transform(geometry_polygons$geometry, crs = "+proj=utm +zone=33 +datum=WGS84")}
-## extract coordinates
+  # Extract polygon data
+  geometry_polygons <- data_raw$osm_polygons
+  ## transform to Danish coordinate system
+  if(transform){geometry_polygons$geometry <- st_transform(geometry_polygons$geometry, crs = "+proj=utm +zone=33 +datum=WGS84")}
+  ## extract coordinates
 
-coords <- as.data.table(st_coordinates(geometry_polygons$geometry))
-osm_id <- data.table(osmID=geometry_polygons$osm_id,L2=coords[,unique(L2)])
-coords[,L2 <- as.character(L2)]
+  coords <- as.data.table(st_coordinates(geometry_polygons$geometry))
+  osm_id <- data.table(osmID=geometry_polygons$osm_id,L2=coords[,unique(L2)])
+  coords[,L2 <- as.character(L2)]
 
-coord_dt <- merge(coords,osm_id,by='L2')
+  coord_dt <- merge(coords,osm_id,by='L2')
 
-## make bLSmodelR source object
-if(rename){
-  Sources <- genSources(as.data.frame(cbind(coord_dt[,.(L2,X,Y)],1)))
-  } else {
-  Sources <- genSources(as.data.frame(cbind(coord_dt[,.(osmID,X,Y)],1)))
-  }
+  ## make bLSmodelR source object
+  if(rename){
+    Sources <- genSources(as.data.frame(cbind(coord_dt[,.(L2,X,Y)],1)))
+    } else {
+    Sources <- genSources(as.data.frame(cbind(coord_dt[,.(osmID,X,Y)],1)))
+    }
 }
 
 create_points <- function(dt){
-Coord_sf <- st_as_sf(dt, coords = c("V2", "V3"), crs = 4326)
-Coord_DK <- st_transform(Coord_sf, crs = "+proj=utm +zone=33 +datum=WGS84")
-Sampling <- data.table(cbind(Coord_DK$V1,as.data.table(matrix(unlist(Coord_DK$geometry),ncol=2,byrow=TRUE))))
-setnames(Sampling,c('Name','x','y'))
+  Coord_sf <- st_as_sf(dt, coords = c("V2", "V3"), crs = 4326)
+  Coord_DK <- st_transform(Coord_sf, crs = "+proj=utm +zone=33 +datum=WGS84")
+  Sampling <- data.table(cbind(Coord_DK$V1,as.data.table(matrix(unlist(Coord_DK$geometry),ncol=2,byrow=TRUE))))
+  setnames(Sampling,c('Name','x','y'))
 }
 
 
@@ -87,7 +87,9 @@ draw_grid <- function(point, delta = NULL, n_lines = NULL, line_length = 200, ze
 }
 
 
-draw_line <- function(point = NULL, angle, length = 500, col = 'grey', lty = 2, x = NULL, y = NULL) {
+
+draw_line <- function(point = NULL, angle, length = 500, col = 'grey', lty = 2, lwd = 1,
+                      x = NULL, y = NULL, draw_arc = FALSE, arc_radius = 15, arc_col = col, reverse = FALSE) {
   if (is.null(point)) {
     x_start <- as.vector(x)
     y_start <- as.vector(y)
@@ -96,18 +98,18 @@ draw_line <- function(point = NULL, angle, length = 500, col = 'grey', lty = 2, 
     y_start <- as.vector(point$y)
   }
     
-  # Convert angle to radians and adjust for R's coordinate system
+  # Convert angle to radians
   angle_rad <- (90 - angle) * pi / 180
   
   # Create all combinations of start points and angles
   combinations <- expand.grid(
     point_index = seq_along(x_start),
-    angle_rad = angle_rad
+    angle_index = seq_along(angle_rad)
   )
   
   # Calculate end points
-  x_end <- x_start[combinations$point_index] + length * cos(combinations$angle_rad)
-  y_end <- y_start[combinations$point_index] + length * sin(combinations$angle_rad)
+  x_end <- x_start[combinations$point_index] + length * cos(angle_rad[combinations$angle_index])
+  y_end <- y_start[combinations$point_index] + length * sin(angle_rad[combinations$angle_index])
   
   # Create line segments
   segments(x0 = x_start[combinations$point_index],
@@ -115,12 +117,39 @@ draw_line <- function(point = NULL, angle, length = 500, col = 'grey', lty = 2, 
            x1 = x_end,
            y1 = y_end,
            col = col,
-           lty = lty)
+           lty = lty,
+           lwd = lwd)
+  
+  # Draw arcs if requested
+  if (draw_arc && length(angle) > 1) {
+    for (i in seq_along(x_start)) {
+      start_angle <- angle_rad[1]
+      end_angle <- angle_rad[2]
+      
+      # Determine the direction of the arc
+      if (reverse) {
+        if (end_angle > start_angle) {
+          end_angle <- end_angle - 2*pi
+        }
+        theta <- seq(start_angle, end_angle, length.out = 100)
+      } else {
+        if (end_angle < start_angle) {
+          end_angle <- end_angle + 2*pi
+        }
+        theta <- seq(start_angle, end_angle, length.out = 100)
+      }
+      
+      # Draw the arc
+      arc_x <- x_start[i] + arc_radius * cos(theta)
+      arc_y <- y_start[i] + arc_radius * sin(theta)
+      lines(arc_x, arc_y, col = arc_col)
+    }
+  }
 }
 
 
-# Function to categorize wind direction into sectors
 
+# Function to categorise wind direction into sectors
 WDsector <- function(WD, zero = 0, delta = 22.5) {
   # Calculate the end point of the sector
   end_point <- (zero + delta) %% 360
@@ -133,34 +162,3 @@ WDsector <- function(WD, zero = 0, delta = 22.5) {
   return(sector)
 }
 
-
-
-# draw_grid <- function(point, delta=NULL, n_lines = NULL, line_length=200, zero=0, col='grey',lwd=NULL) {
-# 	# browser()
-#   if(is.null(delta) & is.null(n_lines)){stop('Specify either "delta" or "n_lines".')}
-#   if(!is.null(delta) & !is.null(n_lines)){if(delta != 360/n_lines*2){stop('Only specify delta or n_lines, but not both.')}}
-#   if(is.null(delta)){delta <- 360/n_lines/2} else {n_lines <- 360/delta/2}
-#   if(!((360 / delta) %% 1 == 0 && (360 / delta) > 0)){stop('360 is not a multiple of your delta value')}
-#   # Convert angle from degrees to radians
-#   angle_rad <- delta * pi / 180
-#   zero_rad <- zero * pi / 180
-
-#   # Calculate coordinates for each line
-# for(j in 1:length(point$x)){
-# # Create a matrix to store line coordinates
-#   lines_matrix <- matrix(NA, nrow = n_lines, ncol = 4)
-#   for(i in 1:n_lines){
-#     x1 <- point[j]$x + (line_length/2) * cos(angle_rad-zero_rad)
-#     x2 <- point[j]$x - (line_length/2) * cos(angle_rad-zero_rad)
-#     y1 <- point[j]$y + (line_length/2) * sin(angle_rad-zero_rad)
-#     y2 <- point[j]$y - (line_length/2) * sin(angle_rad-zero_rad)
-#     lines_matrix[i, ] <- c(x1,x2,y1,y2)
-    
-#     # Increment the angle for the next line
-#     angle_rad <- angle_rad + (delta * pi / 180)
-#   }
-  
-#   for(i in 1:n_lines){
-#     lines(c(lines_matrix[i, 1], lines_matrix[i, 2]), c(lines_matrix[i, 3], lines_matrix[i, 4]),col=col,lwd=lwd)
-#   }}
-# }
