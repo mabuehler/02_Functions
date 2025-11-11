@@ -12,13 +12,14 @@ library(osmdata)
 library(sf)
 
 
-create_polygons <- function(left,bottom,right,top,feature='building',transform=TRUE,rename=TRUE){
-
+create_polygons <- function(bottom, left, top, right, feature = 'building', transform  = TRUE, rename = TRUE){
+# browser()
   assign("has_internet_via_proxy", TRUE, environment(curl::has_internet)) # otherwise for unknow reason it does not work.
 
   ## extract data according to coordinates
-  bbox <- opq(c(left,bottom,right,top))
-  osm_feature <- add_osm_feature(bbox,key = feature)
+  bbox <- opq(c(left, bottom, right, top))
+  # browser()
+  osm_feature <- add_osm_feature(bbox, key = feature)
   data_raw <- osmdata_sf(osm_feature)
 
   # Extract polygon data
@@ -28,24 +29,24 @@ create_polygons <- function(left,bottom,right,top,feature='building',transform=T
   ## extract coordinates
 
   coords <- as.data.table(st_coordinates(geometry_polygons$geometry))
-  osm_id <- data.table(osmID=geometry_polygons$osm_id,L2=coords[,unique(L2)])
-  coords[,L2 <- as.character(L2)]
+  osm_id <- data.table(osmID = geometry_polygons$osm_id, L2 = coords[, unique(L2)])
+  coords[, L2 <- as.character(L2)]
 
-  coord_dt <- merge(coords,osm_id,by='L2')
+  coord_dt <- merge(coords, osm_id, by = 'L2')
 
   ## make bLSmodelR source object
   if(rename){
-    Sources <- genSources(as.data.frame(cbind(coord_dt[,.(L2,X,Y)],1)))
+    Sources <- genSources(as.data.frame(cbind(coord_dt[, .(L2, X, Y)], 1)))
     } else {
-    Sources <- genSources(as.data.frame(cbind(coord_dt[,.(osmID,X,Y)],1)))
+    Sources <- genSources(as.data.frame(cbind(coord_dt[, .(osmID, X, Y)], 1)))
     }
 }
 
 create_points <- function(dt){
   Coord_sf <- st_as_sf(dt, coords = c("V2", "V3"), crs = 4326)
   Coord_DK <- st_transform(Coord_sf, crs = "+proj=utm +zone=33 +datum=WGS84")
-  Sampling <- data.table(cbind(Coord_DK$V1,as.data.table(matrix(unlist(Coord_DK$geometry),ncol=2,byrow=TRUE))))
-  setnames(Sampling,c('Name','x','y'))
+  Sampling <- data.table(cbind(Coord_DK$V1, as.data.table(matrix(unlist(Coord_DK$geometry), ncol = 2, byrow = TRUE))))
+  setnames(Sampling, c('Name', 'x', 'y'))
 }
 
 
@@ -160,5 +161,47 @@ WDsector <- function(WD, zero = 0, delta = 22.5) {
     sector <- cut(WD, breaks = c(0:(360/delta)) * delta, labels = 1:(360/delta))
   }
   return(sector)
+}
+
+
+# Define a function to rotate a set of coordinates by a given angle
+rot_coord <- function(coords, angle) {
+  angle_rad <- angle * (pi / 180)
+  rotation_matrix <- matrix(c(cos(angle_rad), -sin(angle_rad), sin(angle_rad), cos(angle_rad)), 
+                           nrow = 2, ncol = 2)
+  rotated_coords <- t(rotation_matrix %*% t(coords))
+  dt <- data.table(rotated_coords)
+  setnames(dt, c('x', 'y'))
+  return(dt)
+}
+
+
+calc_rot <- function(coords_dt) {
+  # Extract the x and y coordinates of the endpoints
+  x1 <- as.numeric(coords_dt[1, 1])
+  y1 <- as.numeric(coords_dt[1, 2])
+  x2 <- as.numeric(coords_dt[2, 1])
+  y2 <- as.numeric(coords_dt[2, 2])
+  # Calculate the difference in x and y
+  dx <- x2 - x1
+  dy <- y2 - y1
+  # Use atan2 to calculate the angle between the line and the x-axis (in radians)
+  angle_rad <- atan2(dy, dx)
+  # Convert radians to degrees
+  angle_deg <- angle_rad * (180 / pi)
+  # Return the angle in degrees
+  return(angle_deg)
+}
+
+
+shift_coordinates <- function(dt) {
+  # Find the minimum values of x and y
+  min_x <- min(dt$x)
+  min_y <- min(dt$y)
+  
+  # Shift the x and y values to make the minimum values 0
+  dt[, `:=`(x = x - min_x, y = y - min_y)]
+  
+  return(dt)
 }
 
