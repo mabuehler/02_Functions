@@ -314,7 +314,7 @@ plot_mean <- function(dt, gas = 'CH4') {
 
 
 ##### 13. Background interpolation:
-interpolate_background <- function(dt, bgd_pos, gases = c('CH4', 'CO2', 'NH3', 'N2O'), max_gap_hours = 2) {
+interpolate_background <- function(dt, bgd_pos, gases = c('CH4', 'CO2', 'NH3', 'N2O'), max_gap_hours = 2, interpolate = TRUE, offset = 0) {
   max_gap_seconds <- max_gap_hours * 3600
   for (pos in bgd_pos) {
     for (g in gases) {
@@ -323,9 +323,34 @@ interpolate_background <- function(dt, bgd_pos, gases = c('CH4', 'CO2', 'NH3', '
       dt[is.na(Flag_rm) & MPVPosition_round == pos, (i_col) := get(mean_col)]
       dt <- dt[order(st)]
       # interpolate
-      dt[, (i_col) := zoo::na.approx(get(i_col), x = as.numeric(st), na.rm = FALSE, maxgap = max_gap_seconds)]
-      dt[, (i_col) := zoo::na.locf(get(i_col), na.rm = FALSE)]
-      dt[, (i_col) := zoo::na.locf(get(i_col), na.rm = FALSE, fromLast = TRUE)]
+      if (interpolate) {
+        dt[is.na(Flag_rm), (i_col) := zoo::na.approx(get(i_col), x = as.numeric(st), na.rm = FALSE, maxgap = max_gap_seconds)]
+        dt[is.na(Flag_rm), (i_col) := zoo::na.locf(get(i_col), na.rm = FALSE)]
+        dt[is.na(Flag_rm), (i_col) := zoo::na.locf(get(i_col), na.rm = FALSE, fromLast = TRUE)]
+        # build averages of the interpolated data
+        dt[is.na(Flag_rm) & MPVPosition_round != pos, (i_col) := mean(get(i_col)), by = N_cycle]
+      } else { # in case data should not be interpolated
+        ## make a helper column that I will delete again
+# browser()
+        dt[, st_floor := floor_date(mean_st, unit = 'hour')]
+        dt[is.na(Flag_rm), (i_col) := nafill(get(i_col), type = "locf"), by = st_floor]
+        dt[is.na(Flag_rm), (i_col) := nafill(get(i_col), type = "nocb"), by = st_floor]
+
+        if (offset != 0) {
+          # browser()
+          dt_sub <- dt[is.na(Flag_rm) & !is.na(get(i_col)), .(st_floor, get(i_col))]
+          dt_sub[, st_floor := st_floor + hours(offset)]
+          dt_sub <- unique(dt_sub)
+          dt <- merge(dt, dt_sub, by = 'st_floor', all.x = TRUE)
+          dt[, (i_col) := V2]
+          dt[, V2 := NULL]
+        }
+
+      dt[is.na(Flag_rm), (i_col) := nafill(get(i_col), type = "locf")]
+      dt[is.na(Flag_rm), (i_col) := nafill(get(i_col), type = "nocb")]
+
+      dt[, st_floor := NULL]
+      }
     }
   }
   return(dt)
@@ -339,29 +364,46 @@ create_WD_sector <- function(start, end, bgd_pos) {
 
 
 ##### 15.Subtract background concentration:
-sub_background <- function(dt, WD_sectors, gases = c('CH4', 'CO2', 'NH3', 'N2O')) {
+sub_background <- function(dt, WD_sectors, gases = c('CH4', 'CO2', 'NH3', 'N2O'), type = c('WD', 'min'), bgd_pos = NULL) {
   # Initialize background columns to NA first
   for (g in gases) {
     bgd_col <- paste0(g, "_bgd")
     dt[, (bgd_col) := NA_real_]
   }
-
-  # Assign background values according to wind sectors
-  for (i in seq_len(nrow(WD_sectors))) {
-    sector <- WD_sectors[i]
-    for (g in gases) {
-      mean_col <- paste0("mean_", g, "_dry")
-      bgd_col <- paste0(g, "_bgd")
-      # Compose background columns for this sector positions and gas
-      bg_cols <- paste0("i", unlist(sector$bgd_pos), "_", mean_col)
-      if (sector$WD_start < sector$WD_end) {
-        cond <- dt$mean_wind_dir >= sector$WD_start & dt$mean_wind_dir < sector$WD_end
-      } else {
-        cond <- dt$mean_wind_dir >= sector$WD_start | dt$mean_wind_dir < sector$WD_end
+  if(type[1] == 'WD') {
+    # Assign background values according to wind sectors
+    for (i in seq_len(nrow(WD_sectors))) {
+      sector <- WD_sectors[i]
+      for (g in gases) {
+        mean_col <- paste0("mean_", g, "_dry")
+        bgd_col <- paste0(g, "_bgd")
+        # Compose background columns for this sector positions and gas
+        bg_cols <- paste0("i", unlist(sector$bgd_pos), "_", mean_col)
+        if (sector$WD_start < sector$WD_end) {
+          cond <- dt$mean_wind_dir >= sector$WD_start & dt$mean_wind_dir < sector$WD_end
+        } else {
+          cond <- dt$mean_wind_dir >= sector$WD_start | dt$mean_wind_dir < sector$WD_end
+        }
+        # browser()
+        # Assign mean background value to the new bgd_col for matching rows
+        dt[cond & MPVPosition_round == 3, (bgd_col) := rowMeans(.SD, na.rm = TRUE), .SDcols = bg_cols]
       }
-      # Assign mean background value to the new bgd_col for matching rows
-      dt[cond & MPVPosition_round == 3, (bgd_col) := rowMeans(.SD, na.rm = TRUE), .SDcols = bg_cols]
     }
+  } else {
+      for (g in gases) {
+        # browser()
+        mean_col <- paste0("mean_", g, "_dry")
+        bgd_col <- paste0(g, "_bgd")
+        # chose background with lowest concentration
+        if (is.null(bgd_pos)) {
+          bg_cols <- grep(paste0("^i([0-9]).*", g), names(dt), value = TRUE)
+        } else {
+          bg_cols <- grep(paste0("^i[", paste(bgd_pos, collapse = ""), "]", ".*", g), names(dt), value = TRUE)
+        }
+        # browser()
+        # Assign mean background value to the new bgd_col for matching rows
+        dt[MPVPosition_round == 3, (bgd_col) := min(.SD, na.rm = TRUE), .SDcols = bg_cols, by = N_cycle]
+      }
   }
 
   # Now subtract background from sampling gas columns to get corrected
