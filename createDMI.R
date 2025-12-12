@@ -29,11 +29,15 @@ createDMI <- function(API,cellId,req_datetime,req_parameter=c('mean_temp', 'mean
 }
 
 
-stationDMI <- function(API, stationId, req_datetime, req_parameter = c('temp_dry', 'wind_dir','wind_speed','pressure'), 
-  url = 'https://dmigw.govcloud.dk/v2/metObs/collections/observation/items?') {
+observationDMI <- function(API, stationId, req_datetime, req_parameter = c('temp_dry', 'wind_dir','wind_speed','pressure')) {
 ##### Define variables that are always the same:
 # browser()
+  url <- 'https://dmigw.govcloud.dk/v2/metObs/collections/observation/items?'
   limit <- 'limit=300000' # max data
+  stationId <- as.character(stationId)
+  if (nchar(stationId) == 4) {
+    stationId <- paste0(0, stationId)
+  }
   stationId <- paste0('stationId=', stationId)
   date_list <- lapply(req_datetime, function(j) {
     datetime <- paste0('datetime=', j)
@@ -44,7 +48,7 @@ stationDMI <- function(API, stationId, req_datetime, req_parameter = c('temp_dry
       v7 <- GET(paste(url, stationId, datetime, parameterId, limit, API, sep = '&'))
       data_raw <- fromJSON(rawToChar(v7$content))
       dt <- as.data.table(data_raw[[2]][[4]])
-      dt[, st := as.POSIXct(observed, format = '%Y-%m-%dT%H:%M:%S',tz = 'UTC')]
+      dt[, st := as.POSIXct(observed, format = '%Y-%m-%dT%H:%M:%S', tz = 'UTC')]
       dt[, help := shift(st)]
       dt[, et := st + round(mean(help - st, na.rm = TRUE))]
       out <- dt[, .(st, et, parameterId, value)][order(st)]
@@ -52,7 +56,21 @@ stationDMI <- function(API, stationId, req_datetime, req_parameter = c('temp_dry
     }) 
     rbindlist(par_list)
   })
-  Climate_data <- rbindlist(date_list)
-  DMI <- dcast(Climate_data[, .(st, et, parameterId, value)], st + et ~ parameterId)
+  observe_data <- rbindlist(date_list)
+  DMI <- dcast(observe_data[, .(st, et, parameterId, value)], st + et ~ parameterId)
   DMI
+}
+
+stationDMI <- function(API, stationId = NULL) {
+##### Define variables that are always the same:
+# browser()
+  url <- 'https://dmigw.govcloud.dk/v2/metObs/collections/station/items?'
+  limit <- 'limit=300000' # max data
+  v7 <- GET(paste(url, limit, API, sep = '&'))
+  data_raw <- fromJSON(rawToChar(v7$content))
+  dt <- as.data.table(data_raw[[2]][[4]])
+  if (!is.null(stationId)) {
+   suppressWarnings({dt <- dt[grep(as.character(stationId), dt[, stationId]), ]})
+  }
+  return(dt)
 }
