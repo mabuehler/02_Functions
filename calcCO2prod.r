@@ -197,14 +197,18 @@ calcCO2prod_new <- function(dt, Farm = NULL, ECM = TRUE) { # function to create 
     rbindlist(lapply(Period, function(period) {
       dt_sub <- dt[Farm == farm & Period == period, ]
 
-dt_sub[, DIP_la := 56]
-dt_sub[, DIP_dr := 250]
-dt_sub[, DIP_kk := 140]
-dt_sub[, DIM_la := 150]
-dt_sub[, DIM_dr := 250]
-dt_sub[, DIM_kk := 140]
-dt_sub[, DIM_he := 0]
 
+## Days in milk
+dt_sub[, DIM_la := 153] # a lactating cows gives 305 days of milk. Thus, on average it is in day 153 as a lactating cow is defined as the time it gives milk.
+dt_sub[, DIM_dr := 0] # doesn't give milk thus 0
+dt_sub[, DIM_kk := 0] # doesn't give milk
+dt_sub[, DIM_he := 0] # doesn't give milk
+
+## Days into pregnancy
+dt_sub[, DIP_la := 83] # In Demnark a cow is 284 days pregnant and gets impregnated after 79 days. For simplification and that the numbers add up
+# assume that the cow is pregnant for 285 days and impregnated after 80 days. So, on average they are 83 days pregnant (there are many that are 0 days pregnant so you can't just calcualte 153-80).
+dt_sub[, DIP_dr := 255] # At the end of the dry period a cow is 285 days pregnant. The dry period is 60 days. Thus on average a dry cow is 255 days pregnant.
+dt_sub[, DIP_kk := 255] # same as for dry cows
 
       ###############
       ### CIGR model:
