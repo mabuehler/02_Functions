@@ -18,6 +18,7 @@ ECM_to_milk <- function(ECM, fat = NULL, protein = NULL, percent = 0.95) { # con
   } else {
     milk <- ECM / ((0.383 * fat + 0.242 * protein + 0.7832) / 3.14)
   }
+  milk <- round(milk, 1)
   return(milk)
 }
 
