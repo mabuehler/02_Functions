@@ -56,18 +56,18 @@ CO2_kjeldsen_mod1 <- function(dt, EFK = FALSE) {
   if (dt$breed == 'Holstein') {
     if (EFK) {
       # 1. parity
-      CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la_EFK) + (0 * dt$DMI_la_EFK) + (-18.5 * (dt$w_la)^0.75))
+      CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) - 777 + (206 * dt$DM_la_EFK) + (0 * dt$DM_la_EFK) + (-18.5 * (dt$w_la)^0.75))
       # 2. parity
-      CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la_EFK) + (7.53 * dt$DMI_la_EFK) + (-18.5 * (dt$w_la)^0.75))
+      CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) - 777 + (206 * dt$DM_la_EFK) + (7.53 * dt$DM_la_EFK) + (-18.5 * (dt$w_la)^0.75))
       # 3.+ parity
-      CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la_EFK) + (15.7 * dt$DMI_la_EFK) + (-18.5 * (dt$w_la)^0.75))
+      CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) - 777 + (206 * dt$DM_la_EFK) + (15.7 * dt$DM_la_EFK) + (-18.5 * (dt$w_la)^0.75))
     } else {
       # 1. parity
-      CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la) + (0 * dt$DMI_la) + (-18.5 * (dt$w_la)^0.75))
+      CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DM_tot_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) - 777 + (206 * dt$DM_tot_la) + (0 * dt$DM_tot_la) + (-18.5 * (dt$w_la)^0.75))
       # 2. parity
-      CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la) + (7.53 * dt$DMI_la) + (-18.5 * (dt$w_la)^0.75))
+      CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DM_tot_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) - 777 + (206 * dt$DM_tot_la) + (7.53 * dt$DM_tot_la) + (-18.5 * (dt$w_la)^0.75))
       # 3.+ parity
-      CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la) + (15.7 * dt$DMI_la) + (-18.5 * (dt$w_la)^0.75))
+      CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DM_tot_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) - 777 + (206 * dt$DM_tot_la) + (15.7 * dt$DM_tot_la) + (-18.5 * (dt$w_la)^0.75))
     }
     CO2_kd <- (CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000
   }
@@ -76,18 +76,18 @@ CO2_kjeldsen_mod1 <- function(dt, EFK = FALSE) {
  if (dt$breed == 'Jersey') {
   if (EFK) {
   # 1. parity
-  CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la_EFK) + (0 * dt$DMI_la_EFK) + (-37.3 * (dt$w_la)^0.75))
+  CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) + 1103 + (204 * dt$DM_la_EFK) + (0 * dt$DM_la_EFK) + (-37.3 * (dt$w_la)^0.75))
   # 2. parity
-  CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la_EFK) + (7.53 * dt$DMI_la_EFK) + (-37.3 * (dt$w_la)^0.75))
+  CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) + 1103 + (204 * dt$DM_la_EFK) + (7.53 * dt$DM_la_EFK) + (-37.3 * (dt$w_la)^0.75))
   # 3.+ parity
-  CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la_EFK) + (15.7 * dt$DMI_la_EFK) + (-37.3 * (dt$w_la)^0.75))
+  CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) + 1103 + (204 * dt$DM_la_EFK) + (15.7 * dt$DM_la_EFK) + (-37.3 * (dt$w_la)^0.75))
   } else {
     # 1. parity
-    CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la) + (0 * dt$DMI_la) + (-37.3 * (dt$w_la)^0.75))
+    CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DM_tot_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) + 1103 + (204 * dt$DM_tot_la) + (0 * dt$DM_tot_la) + (-37.3 * (dt$w_la)^0.75))
     # 2. parity
-    CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la) + (7.53 * dt$DMI_la) + (-37.3 * (dt$w_la)^0.75))
+    CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DM_tot_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) + 1103 + (204 * dt$DM_tot_la) + (7.53 * dt$DM_tot_la) + (-37.3 * (dt$w_la)^0.75))
     # 3.+ parity
-    CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la) + (15.7 * dt$DMI_la) + (-37.3 * (dt$w_la)^0.75))
+    CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DM_tot_la) + (60.4 * (dt$w_la)^0.75) + (3.44 * dt$DCP_tot_la) + 1103 + (204 * dt$DM_tot_la) + (15.7 * dt$DM_tot_la) + (-37.3 * (dt$w_la)^0.75))
     }
   CO2_kd <- (CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000
   }
@@ -97,7 +97,7 @@ CO2_kjeldsen_mod1 <- function(dt, EFK = FALSE) {
 CO2_kjeldsen_mod2 <- function(dt, EFK = FALSE) {
   # browser()
   # CO2 <- b0 + (bECM * ECM) + (bBW075 * BW75) + (bMCF * MCF) + (bDIM * DIM) + breed + (bDIMDCF * DIM * DCF) + (bECMDIM * ECM * DIM) + (bECMBW * ECM * BW) + (bMCFBW * MCF * BW) + (bBWbreed * BW) + (bDIMbreed * DIM) + (bBWparity * BW)
-  # CO2 <- -6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + breed + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (bBWbreed * (dt$w_la)^0.75) + (bDIMbreed * dt$DIM_la) + (bBWparity * (dt$w_la)^0.75)
+  # CO2 <- -6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + breed + (-0.122 * dt$DIM_la * dt$DCF_tot_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (bBWbreed * (dt$w_la)^0.75) + (bDIMbreed * dt$DIM_la) + (bBWparity * (dt$w_la)^0.75)
   ### Holstein
   if (dt$breed == 'Holstein') {
     if (EFK) {
@@ -109,11 +109,11 @@ CO2_kjeldsen_mod2 <- function(dt, EFK = FALSE) {
     CO2_gd_p3 <- dt$N_par3 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la_EFK) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-5.96 * (dt$w_la)^0.75) + (2.06 * dt$DIM_la) + (4.01 * (dt$w_la)^0.75))
     } else {
       # 1. parity
-      CO2_gd_p1 <- dt$N_par1 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-5.96 * (dt$w_la)^0.75) + (2.06 * dt$DIM_la) + (0 * (dt$w_la)^0.75))
+      CO2_gd_p1 <- dt$N_par1 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_tot_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-5.96 * (dt$w_la)^0.75) + (2.06 * dt$DIM_la) + (0 * (dt$w_la)^0.75))
       # 2. parity
-      CO2_gd_p2 <- dt$N_par2 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-5.96 * (dt$w_la)^0.75) + (2.06 * dt$DIM_la) + (3.66 * (dt$w_la)^0.75))
+      CO2_gd_p2 <- dt$N_par2 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_tot_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-5.96 * (dt$w_la)^0.75) + (2.06 * dt$DIM_la) + (3.66 * (dt$w_la)^0.75))
       # 3.+ parity
-      CO2_gd_p3 <- dt$N_par3 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-5.96 * (dt$w_la)^0.75) + (2.06 * dt$DIM_la) + (4.01 * (dt$w_la)^0.75))
+      CO2_gd_p3 <- dt$N_par3 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_tot_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-5.96 * (dt$w_la)^0.75) + (2.06 * dt$DIM_la) + (4.01 * (dt$w_la)^0.75))
       }
     CO2_kd <- (CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000
   }
@@ -129,11 +129,11 @@ CO2_kjeldsen_mod2 <- function(dt, EFK = FALSE) {
   CO2_gd_p3 <- dt$N_par3 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la_EFK) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-1.03 * (dt$w_la)^0.75) + (2.49 * dt$DIM_la) + (4.01 * (dt$w_la)^0.75))
   } else {
     # 1. parity
-    CO2_gd_p1 <- dt$N_par1 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-1.03 * (dt$w_la)^0.75) + (2.49 * dt$DIM_la) + (0 * (dt$w_la)^0.75))
+    CO2_gd_p1 <- dt$N_par1 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_tot_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-1.03 * (dt$w_la)^0.75) + (2.49 * dt$DIM_la) + (0 * (dt$w_la)^0.75))
     # 2. parity
-    CO2_gd_p2 <- dt$N_par2 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-1.03 * (dt$w_la)^0.75) + (2.49 * dt$DIM_la) + (3.66 * (dt$w_la)^0.75))
+    CO2_gd_p2 <- dt$N_par2 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_tot_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-1.03 * (dt$w_la)^0.75) + (2.49 * dt$DIM_la) + (3.66 * (dt$w_la)^0.75))
     # 3.+ parity
-    CO2_gd_p3 <- dt$N_par3 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-1.03 * (dt$w_la)^0.75) + (2.49 * dt$DIM_la) + (4.01 * (dt$w_la)^0.75))
+    CO2_gd_p3 <- dt$N_par3 * (-6134 + (213 * dt$ECM) + (126 * (dt$w_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_tot_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$w_la)^0.75) + (-0.614 * dt$MCF * (dt$w_la)^0.75) + (-1.03 * (dt$w_la)^0.75) + (2.49 * dt$DIM_la) + (4.01 * (dt$w_la)^0.75))
     } 
   CO2_kd <- (CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000
   }
@@ -155,11 +155,11 @@ CO2_kjeldsen_mod3 <- function(dt, EFK = FALSE) {
     CO2_gd_p3 <- dt$N_par3 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 + 1587 + (803) + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-28.8 * dt$MCF))
     } else {
       # 1. parity
-      CO2_gd_p1 <- dt$N_par1 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 + 0 + (0) + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-4.18 * dt$MCF))
+      CO2_gd_p1 <- dt$N_par1 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 + 0 + (0) + (-0.149 * dt$DIM_la * dt$DCF_tot_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-4.18 * dt$MCF))
       # 2. parity
-      CO2_gd_p2 <- dt$N_par2 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 + 511 + (775) + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-10.5 * dt$MCF))
+      CO2_gd_p2 <- dt$N_par2 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 + 511 + (775) + (-0.149 * dt$DIM_la * dt$DCF_tot_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-10.5 * dt$MCF))
       # 3.+ parity
-      CO2_gd_p3 <- dt$N_par3 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 + 1587 + (803) + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-28.8 * dt$MCF))
+      CO2_gd_p3 <- dt$N_par3 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 + 1587 + (803) + (-0.149 * dt$DIM_la * dt$DCF_tot_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-28.8 * dt$MCF))
       }       
     CO2_kd <- (CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000
   }
@@ -168,18 +168,18 @@ CO2_kjeldsen_mod3 <- function(dt, EFK = FALSE) {
  if (dt$breed == 'Jersey') {
   if (EFK) {
   # 1. parity
-  CO2_gd_p1 <- dt$N_par1 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 0 + (0) + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-4.18 * dt$MCF))
+  CO2_gd_p1 <- dt$N_par1 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 0 + (0) + (-0.149 * dt$DIM_la * dt$DCF_tot_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-4.18 * dt$MCF))
   # 2. parity
-  CO2_gd_p2 <- dt$N_par2 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 511 + (608) + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-10.5 * dt$MCF))
+  CO2_gd_p2 <- dt$N_par2 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 511 + (608) + (-0.149 * dt$DIM_la * dt$DCF_tot_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-10.5 * dt$MCF))
   # 3.+ parity
   CO2_gd_p3 <- dt$N_par3 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 1587 + (1307) + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-28.8 * dt$MCF))
   } else {
     # 1. parity
-    CO2_gd_p1 <- dt$N_par1 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 0 + (0) + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-4.18 * dt$MCF))
+    CO2_gd_p1 <- dt$N_par1 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 0 + (0) + (-0.149 * dt$DIM_la * dt$DCF_tot_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-4.18 * dt$MCF))
     # 2. parity
-    CO2_gd_p2 <- dt$N_par2 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 511 + (608) + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-10.5 * dt$MCF))
+    CO2_gd_p2 <- dt$N_par2 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 511 + (608) + (-0.149 * dt$DIM_la * dt$DCF_tot_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-10.5 * dt$MCF))
     # 3.+ parity
-    CO2_gd_p3 <- dt$N_par3 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 1587 + (1307) + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-28.8 * dt$MCF))
+    CO2_gd_p3 <- dt$N_par3 * (8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 1587 + (1307) + (-0.149 * dt$DIM_la * dt$DCF_tot_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-28.8 * dt$MCF))
     } 
   CO2_kd <- (CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000
   }
