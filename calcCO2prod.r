@@ -56,18 +56,18 @@ CO2_kjeldsen_mod1 <- function(dt, EFK = FALSE) {
   if (dt$breed == 'Holstein') {
     if (EFK) {
       # 1. parity
-      CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) - 777 + (206 * dt$DM_la_EFK) + (0.00 * dt$DM_la_EFK) + (-18.5 * (dt$weight_la)^0.75))
+      CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) - 777 + (206 * dt$DMI_la_EFK) + (0.00 * dt$DMI_la_EFK) + (-18.5 * (dt$weight_la)^0.75))
       # 2. parity
-      CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) - 777 + (206 * dt$DM_la_EFK) + (7.53 * dt$DM_la_EFK) + (-18.5 * (dt$weight_la)^0.75))
+      CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) - 777 + (206 * dt$DMI_la_EFK) + (7.53 * dt$DMI_la_EFK) + (-18.5 * (dt$weight_la)^0.75))
       # 3.+ parity
-      CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) - 777 + (206 * dt$DM_la_EFK) + (15.7 * dt$DM_la_EFK) + (-18.5 * (dt$weight_la)^0.75))
+      CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) - 777 + (206 * dt$DMI_la_EFK) + (15.7 * dt$DMI_la_EFK) + (-18.5 * (dt$weight_la)^0.75))
     } else {
       # 1. parity
-      CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DM_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DM_la) + (0.00 * dt$DM_la) + (-18.5 * (dt$weight_la)^0.75))
+      CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la) + (0.00 * dt$DMI_la) + (-18.5 * (dt$weight_la)^0.75))
       # 2. parity
-      CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DM_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DM_la) + (7.53 * dt$DM_la) + (-18.5 * (dt$weight_la)^0.75))
+      CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la) + (7.53 * dt$DMI_la) + (-18.5 * (dt$weight_la)^0.75))
       # 3.+ parity
-      CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DM_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DM_la) + (15.7 * dt$DM_la) + (-18.5 * (dt$weight_la)^0.75))
+      CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la) + (15.7 * dt$DMI_la) + (-18.5 * (dt$weight_la)^0.75))
     }
     CO2_kd <- round((CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000)
   }
@@ -76,18 +76,18 @@ CO2_kjeldsen_mod1 <- function(dt, EFK = FALSE) {
  if (dt$breed == 'Jersey') {
   if (EFK) {
   # 1. parity
-  CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) + 1103 + (204 * dt$DM_la_EFK) + (0.00 * dt$DM_la_EFK) + (-37.3 * (dt$weight_la)^0.75))
+  CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) + 1103 + (204 * dt$DMI_la_EFK) + (0.00 * dt$DMI_la_EFK) + (-37.3 * (dt$weight_la)^0.75))
   # 2. parity
-  CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) + 1103 + (204 * dt$DM_la_EFK) + (7.53 * dt$DM_la_EFK) + (-37.3 * (dt$weight_la)^0.75))
+  CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) + 1103 + (204 * dt$DMI_la_EFK) + (7.53 * dt$DMI_la_EFK) + (-37.3 * (dt$weight_la)^0.75))
   # 3.+ parity
-  CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DM_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) + 1103 + (204 * dt$DM_la_EFK) + (15.7 * dt$DM_la_EFK) + (-37.3 * (dt$weight_la)^0.75))
+  CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) + 1103 + (204 * dt$DMI_la_EFK) + (15.7 * dt$DMI_la_EFK) + (-37.3 * (dt$weight_la)^0.75))
   } else {
     # 1. parity
-    CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DM_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DM_la) + (0.00 * dt$DM_la) + (-37.3 * (dt$weight_la)^0.75))
+    CO2_gd_p1 <- dt$N_par1 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la) + (0.00 * dt$DMI_la) + (-37.3 * (dt$weight_la)^0.75))
     # 2. parity
-    CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DM_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DM_la) + (7.53 * dt$DM_la) + (-37.3 * (dt$weight_la)^0.75))
+    CO2_gd_p2 <- dt$N_par2 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la) + (7.53 * dt$DMI_la) + (-37.3 * (dt$weight_la)^0.75))
     # 3.+ parity
-    CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DM_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DM_la) + (15.7 * dt$DM_la) + (-37.3 * (dt$weight_la)^0.75))
+    CO2_gd_p3 <- dt$N_par3 * (956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la) + (15.7 * dt$DMI_la) + (-37.3 * (dt$weight_la)^0.75))
     }
   CO2_kd <- round((CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000)
   }
@@ -223,23 +223,22 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
     # calves
     CO2_CIGR_ca <- CO2_calc(hpu = hpu_ca, factor = dt_sub$fac_ca, N = dt_sub$N_ca)
 
-    ##### CO2 production with a correction of Kjeldsen according to Figure :
+    ##### CO2 production with a correction of Kjeldsen according to Figure 3. Only for lactating cows:
     CO2_CIGR_Kjel_la <- CO2_kjeldsen_corr(hpu = hpu_la, factor = dt_sub$fac_la, N = dt_sub$N_la)
-    CO2_CIGR_Kjel_dr <- CO2_kjeldsen_corr(hpu = hpu_dr, factor = dt_sub$fac_dr, N = dt_sub$N_dr)
 
 
     ############################
     ### Kjeldsen et al. (2024):
-
+ 
     ##### Model 1-3:
-    CO2_Kjel_mod1_la <- CO2_kjeldsen_mod1(dt_sub)
-    CO2_Kjel_mod2_la <- CO2_kjeldsen_mod2(dt_sub)
-    CO2_Kjel_mod3_la <- CO2_kjeldsen_mod3(dt_sub)
+    CO2_Kjel_mod1_la <- CO2_kjeldsen_mod1(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure 
+    CO2_Kjel_mod2_la <- CO2_kjeldsen_mod2(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod3_la <- CO2_kjeldsen_mod3(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
 
     ##### Model 1-3 with EFK values
-    CO2_Kjel_mod1_la_EFK <- CO2_kjeldsen_mod1(dt_sub, EFK = TRUE)
-    CO2_Kjel_mod2_la_EFK <- CO2_kjeldsen_mod2(dt_sub, EFK = TRUE)
-    CO2_Kjel_mod3_la_EFK <- CO2_kjeldsen_mod3(dt_sub, EFK = TRUE)
+    CO2_Kjel_mod1_la_EFK <- CO2_kjeldsen_mod1(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod2_la_EFK <- CO2_kjeldsen_mod2(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod3_la_EFK <- CO2_kjeldsen_mod3(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
 
     ##### Write table:
     data.table(
@@ -251,16 +250,16 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
       CO2_CIGR_he = CO2_CIGR_he,
       CO2_CIGR_ca = CO2_CIGR_ca,
       CO2_CIGR_Kjel_la = CO2_CIGR_Kjel_la,
-      CO2_CIGR_Kjel_dr = CO2_CIGR_Kjel_dr,
       CO2_Kjel_mod1_la = CO2_Kjel_mod1_la,
       CO2_Kjel_mod2_la = CO2_Kjel_mod2_la,
       CO2_Kjel_mod3_la = CO2_Kjel_mod3_la,
       CO2_Kjel_mod1_la_EFK = CO2_Kjel_mod1_la_EFK,
       CO2_Kjel_mod2_la_EFK = CO2_Kjel_mod2_la_EFK,
       CO2_Kjel_mod3_la_EFK = CO2_Kjel_mod3_la_EFK,
-      CO2_CIGR_kkheca = CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
+      CO2_CIGR_drkkheca = CO2_CIGR_dr + CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
       CO2_CIGR_total = CO2_CIGR_la + CO2_CIGR_dr + CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
-      CO2_CIGR_Kjel_total = CO2_CIGR_Kjel_la + CO2_CIGR_Kjel_dr + CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
+      CO2_CIGR_Kjel_total = CO2_CIGR_Kjel_la + CO2_CIGR_dr + CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
+      CO2_Kjel_mod1_CIGR_total = CO2_Kjel_mod1_la + CO2_CIGR_dr + CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
       N_la = dt_sub$N_la,
       N_dr = dt_sub$N_dr,
       N_kk = dt_sub$N_kk,
@@ -272,7 +271,7 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
       weight_kk = dt_sub$weight_kk,
       weight_he = dt_sub$weight_he,
       weight_ca = dt_sub$weight_ca,
-      weight_all = dt_sub$weight_la + dt_sub$weight_dr + dt_sub$weight_kk + dt_sub$weight_he + dt_sub$weight_ca
+      weight_all = dt_sub$weight_la * dt_sub$N_la + dt_sub$weight_dr * dt_sub$N_dr + dt_sub$weight_kk * dt_sub$N_kk + dt_sub$weight_he * dt_sub$N_he + dt_sub$weight_ca * dt_sub$N_ca
     )
 }))
 }
