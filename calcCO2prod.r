@@ -50,6 +50,14 @@ CO2_kjeldsen_corr <- function(hpu, factor, N) { # CO2 production and correct it 
 	}
 }
 
+CO2_kjeldsen_enteric_corr <- function(hpu, N) { # CO2 production and correct it with linear regression from Kjeldsen et al. 2024
+  if(is.na(hpu) | is.na(N)) {
+    0
+  } else {
+    round(((hpu * 0.180) * 0.76 + 4.721) * N)
+  }
+}
+
 
 CO2_kjeldsen_mod1 <- function(dt, EFK = FALSE) {
   ### Holstein
@@ -214,52 +222,73 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
     hpu_ca <- hpu_calf(weight = dt_sub$weight_ca, gain = dt_sub$gain_ca)
 
     ##### CO2 production:
-    # lactating and dry cows
+    # lactating cows
+    CO2_CIGR_enteric_la <- CO2_calc(hpu = hpu_la, factor = 0.18, N = dt_sub$N_la)
     CO2_CIGR_la <- CO2_calc(hpu = hpu_la, factor = dt_sub$fac_la, N = dt_sub$N_la)
+    CO2_CIGR_slurry_la <- CO2_CIGR_la - CO2_CIGR_enteric_la
+    # dry cows
+    CO2_CIGR_enteric_dr <- CO2_calc(hpu = hpu_dr, factor = 0.18, N = dt_sub$N_dr)
     CO2_CIGR_dr <- CO2_calc(hpu = hpu_dr, factor = dt_sub$fac_dr, N = dt_sub$N_dr)
-    # kaelvekvier and heifers
+    CO2_CIGR_slurry_dr <- CO2_CIGR_dr - CO2_CIGR_enteric_dr
+    # kaelvekvier
+    CO2_CIGR_enteric_kk <- CO2_calc(hpu = hpu_kk, factor = 0.18, N = dt_sub$N_kk)
     CO2_CIGR_kk <- CO2_calc(hpu = hpu_kk, factor = dt_sub$fac_kk, N = dt_sub$N_kk)
+    CO2_CIGR_slurry_kk <- CO2_CIGR_kk - CO2_CIGR_enteric_kk
+    # heifers
+    CO2_CIGR_enteric_he <- CO2_calc(hpu = hpu_he, factor = 0.18, N = dt_sub$N_he)
     CO2_CIGR_he <- CO2_calc(hpu = hpu_he, factor = dt_sub$fac_he, N = dt_sub$N_he)
+    CO2_CIGR_slurry_he <- CO2_CIGR_he - CO2_CIGR_enteric_he
     # calves
+    CO2_CIGR_enteric_ca <- CO2_calc(hpu = hpu_ca, factor = dt_sub$fac_ca, N = dt_sub$N_ca)
     CO2_CIGR_ca <- CO2_calc(hpu = hpu_ca, factor = dt_sub$fac_ca, N = dt_sub$N_ca)
+    CO2_CIGR_slurry_ca <- CO2_CIGR_ca - CO2_CIGR_enteric_ca
 
     ##### CO2 production with a correction of Kjeldsen according to Figure 3. Only for lactating cows:
-    CO2_CIGR_Kjel_la <- CO2_kjeldsen_corr(hpu = hpu_la, factor = dt_sub$fac_la, N = dt_sub$N_la)
+    CO2_CIGR_Kjel_enteric_la <- CO2_kjeldsen_enteric_corr(hpu = hpu_la, N = dt_sub$N_la)
 
 
     ############################
     ### Kjeldsen et al. (2024):
  
     ##### Model 1-3:
-    CO2_Kjel_mod1_la <- CO2_kjeldsen_mod1(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure 
-    CO2_Kjel_mod2_la <- CO2_kjeldsen_mod2(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
-    CO2_Kjel_mod3_la <- CO2_kjeldsen_mod3(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod1_enteric_la <- CO2_kjeldsen_mod1(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure 
+    CO2_Kjel_mod2_enteric_la <- CO2_kjeldsen_mod2(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod3_enteric_la <- CO2_kjeldsen_mod3(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
 
     ##### Model 1-3 with EFK values
-    CO2_Kjel_mod1_la_EFK <- CO2_kjeldsen_mod1(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
-    CO2_Kjel_mod2_la_EFK <- CO2_kjeldsen_mod2(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
-    CO2_Kjel_mod3_la_EFK <- CO2_kjeldsen_mod3(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod1_enteric_la_EFK <- CO2_kjeldsen_mod1(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod2_enteric_la_EFK <- CO2_kjeldsen_mod2(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod3_enteric_la_EFK <- CO2_kjeldsen_mod3(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
 
     ##### Write table:
     data.table(
       farm = Farm,
       period = P,
-      CO2_CIGR_la = CO2_CIGR_la,
-      CO2_CIGR_dr = CO2_CIGR_dr,
-      CO2_CIGR_kk = CO2_CIGR_kk,
-      CO2_CIGR_he = CO2_CIGR_he,
-      CO2_CIGR_ca = CO2_CIGR_ca,
-      CO2_CIGR_Kjel_la = CO2_CIGR_Kjel_la,
-      CO2_Kjel_mod1_la = CO2_Kjel_mod1_la,
-      CO2_Kjel_mod2_la = CO2_Kjel_mod2_la,
-      CO2_Kjel_mod3_la = CO2_Kjel_mod3_la,
-      CO2_Kjel_mod1_la_EFK = CO2_Kjel_mod1_la_EFK,
-      CO2_Kjel_mod2_la_EFK = CO2_Kjel_mod2_la_EFK,
-      CO2_Kjel_mod3_la_EFK = CO2_Kjel_mod3_la_EFK,
-      CO2_CIGR_drkkheca = CO2_CIGR_dr + CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
-      CO2_CIGR_total = CO2_CIGR_la + CO2_CIGR_dr + CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
-      CO2_CIGR_Kjel_total = CO2_CIGR_Kjel_la + CO2_CIGR_dr + CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
-      CO2_Kjel_mod1_CIGR_total = CO2_Kjel_mod1_la + CO2_CIGR_dr + CO2_CIGR_kk + CO2_CIGR_he + CO2_CIGR_ca,
+      CO2_CIGR_enteric_la = CO2_CIGR_enteric_la,
+      CO2_CIGR_enteric_dr = CO2_CIGR_enteric_dr,
+      CO2_CIGR_enteric_kk = CO2_CIGR_enteric_kk,
+      CO2_CIGR_enteric_he = CO2_CIGR_enteric_he,
+      CO2_CIGR_enteric_ca = CO2_CIGR_enteric_ca,
+      CO2_CIGR_Kjel_enteric_la = CO2_CIGR_Kjel_enteric_la,
+      CO2_Kjel_mod1_enteric_la = CO2_Kjel_mod1_enteric_la,
+      CO2_Kjel_mod2_enteric_la = CO2_Kjel_mod2_enteric_la,
+      CO2_Kjel_mod3_enteric_la = CO2_Kjel_mod3_enteric_la,
+      CO2_Kjel_mod1_enteric_la_EFK = CO2_Kjel_mod1_enteric_la_EFK,
+      CO2_Kjel_mod2_enteric_la_EFK = CO2_Kjel_mod2_enteric_la_EFK,
+      CO2_Kjel_mod3_enteric_la_EFK = CO2_Kjel_mod3_enteric_la_EFK,
+      CO2_CIGR_enteric_drkkheca = CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
+      CO2_CIGR_enteric_total = CO2_CIGR_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
+      CO2_CIGR_Kjel_enteric_total = CO2_CIGR_Kjel_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
+      CO2_Kjel_mod1_CIGR_enteric_total = CO2_Kjel_mod1_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
+      CO2_Kjel_mod2_CIGR_enteric_total = CO2_Kjel_mod2_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
+      CO2_Kjel_mod3_CIGR_enteric_total = CO2_Kjel_mod3_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
+      CO2_CIGR_slurry_la = CO2_CIGR_slurry_la,
+      CO2_CIGR_slurry_dr = CO2_CIGR_slurry_dr,
+      CO2_CIGR_slurry_kk = CO2_CIGR_slurry_kk,
+      CO2_CIGR_slurry_he = CO2_CIGR_slurry_he,
+      CO2_CIGR_slurry_ca = CO2_CIGR_slurry_ca,
+      CO2_CIGR_slurry_drkkheca = CO2_CIGR_slurry_dr + CO2_CIGR_slurry_kk + CO2_CIGR_slurry_he + CO2_CIGR_slurry_ca,
+      CO2_CIGR_slurry_total = CO2_CIGR_slurry_la + CO2_CIGR_slurry_dr + CO2_CIGR_slurry_kk + CO2_CIGR_slurry_he + CO2_CIGR_slurry_ca,
       N_la = dt_sub$N_la,
       N_dr = dt_sub$N_dr,
       N_kk = dt_sub$N_kk,
