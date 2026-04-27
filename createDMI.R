@@ -4,7 +4,7 @@ library(ibts)
 library(httr)
 library(jsonlite)
 
-createDMI <- function(API,cellId,req_datetime,req_parameter=c('mean_temp', 'mean_wind_dir', 'mean_wind_speed', 'mean_pressure', 'acc_precip'), 
+createDMI <- function(API = NULL, cellId, req_datetime, req_parameter = c('mean_temp', 'mean_wind_dir', 'mean_wind_speed', 'mean_pressure', 'acc_precip'), 
   url = 'https://dmigw.govcloud.dk/v2/climateData/collections/10kmGridValue/items?', resolution = 'hour') {
   ##### Define variables that are always the same:
   timeResolution <- paste0('timeResolution=', resolution)
