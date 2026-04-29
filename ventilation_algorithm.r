@@ -240,45 +240,151 @@ test_individual_linearity <- function(data, pred = 'AER', var = c('mean_wind_spe
 
 
 
-build_ensemble_models <- function(data, pred = 'AER', var = c('mean_wind_speed', 'Temp_K', 'diff_WD'), place = c("Odder", "Gjerlev", "Lindå", "Auning", "Hobro"), 
-                           type = c('Control', 'Acid'), position = c('Position 1', 'Position 2'), min_samples = 10) {
+# build_ensemble_models <- function(data, pred = 'AER', var = c('mean_wind_speed', 'Temp_K', 'diff_WD'), place = c("Odder", "Gjerlev", "Lindå", "Auning", "Hobro"), 
+#                            type = c('Control', 'Acid'), position = c('Position 1', 'Position 2'), min_samples = 10) {
+#   # 1. Filter Data
+#   dt <- copy(data[Place %in% place & Type %in% type & Measurement_point %in% position])
+  
+#   # 2. Define Combinations
+#   combos <- CJ(place = place, type = type, position = position, unique = TRUE)
+#   results <- list()
+    
+#   # 3. Loop
+#   for (i in 1:nrow(combos)) {
+#     p <- combos$place[i]
+#     t <- combos$type[i]
+#     pos <- combos$position[i]
+    
+#     dt_sub <- dt[Place == p & Type == t & Measurement_point == pos]
+    
+#     # Check data sufficiency (RF needs more data than LM)
+#     if (nrow(dt_sub) < min_samples) {
+#       message(sprintf("Skipping %s/%s/%s: Insufficient data (%d rows)", p, t, pos, nrow(dt_sub)))
+#       next
+#     }
+    
+#     # Check if predictor columns exist
+#     vars_to_use <- c('mean_wind_speed', 'Temp_K', 'diff_WD')
+#     if (!all(vars_to_use %in% names(dt_sub))) {
+#       warning(sprintf("Missing predictors for %s/%s/%s", p, t, pos))
+#       next
+#     }
+    
+#     # FIX: Ensure the target column is in the data passed to ranger
+#     # We select predictors AND the target column
+#     cols_to_pass <- c(vars_to_use, pred)
+    
+#     # Train Random Forest
+#     model <- tryCatch({
+#       ranger(
+#         formula = as.formula(paste(pred, "~", paste(vars_to_use, collapse = " + "))),
+#         data = dt_sub[, ..cols_to_pass], # Include BOTH predictors and target
+#         num.trees = 100,
+#         min.node.size = 5,
+#         importance = "impurity"
+#       )
+#     }, error = function(e) {
+#       warning(sprintf("Failed to train RF for %s/%s/%s: %s", p, t, pos, e$message))
+#       return(NULL)
+#     })
+    
+#     if (is.null(model)) next
+    
+#     # Calculate Performance
+#     # Now we can predict because the model was trained correctly
+#     preds <- predict(model, data = dt_sub[, ..vars_to_use])$predictions
+#     actuals <- dt_sub[[pred]]
+    
+#     ss_res <- sum((actuals - preds)^2)
+#     ss_tot <- sum((actuals - mean(actuals))^2)
+#     r_sq <- 1 - (ss_res / ss_tot)
+#     rmse <- sqrt(mean((actuals - preds)^2))
+    
+#     # Store Results
+#     results[[paste(p, t, pos, sep = "_")]] <- list(
+#       place = p,
+#       type = t,
+#       position = pos,
+#       n_obs = nrow(dt_sub),
+#       model = model,
+#       r_squared = r_sq,
+#       rmse = rmse
+#     )
+#   }
+  
+#   # 4. Create Summary
+#   if (length(results) > 0) {
+#     summary_df <- rbindlist(lapply(results, function(x) {
+#       data.table(
+#         Place = x$place,
+#         Type = x$type,
+#         Position = x$position,
+#         N_Obs = x$n_obs,
+#         R_Squared = round(x$r_squared, 3),
+#         RMSE = round(x$rmse, 3)
+#       )
+#     }))
+    
+#     # Sort by Quality (Good first)
+#     setorder(summary_df, rmse, -R_Squared)
+    
+#     cat("\n--- Model Performance Summary ---\n")
+#     print(summary_df)
+    
+#     return(list(
+#       summary = summary_df,
+#       models = results
+#     ))
+#   } else {
+#     warning("No models trained.")
+#     return(NULL)
+#   }
+# }
+
+
+build_ensemble_models <- function(data, pred = 'AER', var = c('mean_wind_speed', 'Temp_K', 'diff_WD'),
+                           place = c("Odder", "Gjerlev", "Lindå", "Auning", "Hobro"),
+                           type = c('Control', 'Acid'), position = c('Position 1', 'Position 2'),
+                           min_samples = 10, test_fraction = 0.2) {
+
   # 1. Filter Data
   dt <- copy(data[Place %in% place & Type %in% type & Measurement_point %in% position])
-  
+
   # 2. Define Combinations
   combos <- CJ(place = place, type = type, position = position, unique = TRUE)
   results <- list()
-    
+
   # 3. Loop
   for (i in 1:nrow(combos)) {
     p <- combos$place[i]
     t <- combos$type[i]
     pos <- combos$position[i]
-    
+
     dt_sub <- dt[Place == p & Type == t & Measurement_point == pos]
-    
-    # Check data sufficiency (RF needs more data than LM)
+
+    # Check data sufficiency
     if (nrow(dt_sub) < min_samples) {
       message(sprintf("Skipping %s/%s/%s: Insufficient data (%d rows)", p, t, pos, nrow(dt_sub)))
       next
     }
-    
+
     # Check if predictor columns exist
-    vars_to_use <- c('mean_wind_speed', 'Temp_K', 'diff_WD')
-    if (!all(vars_to_use %in% names(dt_sub))) {
+    if (!all(var %in% names(dt_sub))) {
       warning(sprintf("Missing predictors for %s/%s/%s", p, t, pos))
       next
     }
-    
-    # FIX: Ensure the target column is in the data passed to ranger
-    # We select predictors AND the target column
-    cols_to_pass <- c(vars_to_use, pred)
-    
+
+    # Split data
+    set.seed(123)
+    train_idx <- sample(1:nrow(dt_sub), size = round(nrow(dt_sub) * (1 - test_fraction)))
+    dt_train <- dt_sub[train_idx]
+    dt_test  <- dt_sub[-train_idx]
+
     # Train Random Forest
     model <- tryCatch({
       ranger(
-        formula = as.formula(paste(pred, "~", paste(vars_to_use, collapse = " + "))),
-        data = dt_sub[, ..cols_to_pass], # Include BOTH predictors and target
+        formula = as.formula(paste(pred, "~", paste(var, collapse = " + "))),
+        data = dt_train[, c(var, pred), with = FALSE],
         num.trees = 100,
         min.node.size = 5,
         importance = "impurity"
@@ -287,32 +393,32 @@ build_ensemble_models <- function(data, pred = 'AER', var = c('mean_wind_speed',
       warning(sprintf("Failed to train RF for %s/%s/%s: %s", p, t, pos, e$message))
       return(NULL)
     })
-    
+
     if (is.null(model)) next
-    
-    # Calculate Performance
-    # Now we can predict because the model was trained correctly
-    preds <- predict(model, data = dt_sub[, ..vars_to_use])$predictions
-    actuals <- dt_sub[[pred]]
-    
+
+    # Calculate Performance on test set
+    preds <- predict(model, data = dt_test[, ..var])$predictions
+    actuals <- dt_test[[pred]]
+
     ss_res <- sum((actuals - preds)^2)
     ss_tot <- sum((actuals - mean(actuals))^2)
     r_sq <- 1 - (ss_res / ss_tot)
     rmse <- sqrt(mean((actuals - preds)^2))
-    
+
     # Store Results
     results[[paste(p, t, pos, sep = "_")]] <- list(
       place = p,
       type = t,
       position = pos,
       n_obs = nrow(dt_sub),
+      n_train = nrow(dt_train),
+      n_test = nrow(dt_test),
       model = model,
       r_squared = r_sq,
-      rmse = rmse,
-      quality = ifelse(r_sq > 0.5, "Good", "Poor") # Arbitrary threshold, adjust as needed
+      rmse = rmse
     )
   }
-  
+
   # 4. Create Summary
   if (length(results) > 0) {
     summary_df <- rbindlist(lapply(results, function(x) {
@@ -321,18 +427,19 @@ build_ensemble_models <- function(data, pred = 'AER', var = c('mean_wind_speed',
         Type = x$type,
         Position = x$position,
         N_Obs = x$n_obs,
+        N_Train = x$n_train,
+        N_Test = x$n_test,
         R_Squared = round(x$r_squared, 3),
-        RMSE = round(x$rmse, 3),
-        Quality = x$quality
+        RMSE = round(x$rmse, 3)
       )
     }))
-    
-    # Sort by Quality (Good first)
-    setorder(summary_df, -Quality, -R_Squared)
-    
+
+    # Sort by R_Squared (Good first)
+    setorder(summary_df, -R_Squared)
+
     cat("\n--- Model Performance Summary ---\n")
     print(summary_df)
-    
+
     return(list(
       summary = summary_df,
       models = results
@@ -342,3 +449,46 @@ build_ensemble_models <- function(data, pred = 'AER', var = c('mean_wind_speed',
     return(NULL)
   }
 }
+
+build_single_model <- function(data, pred = 'AER', var = c('mean_wind_speed', 'Temp_K', 'diff_WD')) {
+
+  # Check if predictor columns exist
+  if (!all(var %in% names(data))) {
+    stop("Missing one or more predictor columns in the data.")
+  }
+
+  # Check if target column exists
+  if (!pred %in% names(data)) {
+    stop("Target column not found in the data.")
+  }
+
+  # Train Random Forest
+  model <- tryCatch({
+    ranger(
+      formula = as.formula(paste(pred, "~", paste(var, collapse = " + "))),
+      data = data[, c(var, pred), with = FALSE],
+      num.trees = 100,
+      min.node.size = 5,
+      importance = "impurity"
+    )
+  }, error = function(e) {
+    stop(sprintf("Failed to train model: %s", e$message))
+  })
+
+  # Calculate Performance
+  preds <- predict(model, data = data[, ..var])$predictions
+  actuals <- data[[pred]]
+
+  ss_res <- sum((actuals - preds)^2)
+  ss_tot <- sum((actuals - mean(actuals))^2)
+  r_sq <- 1 - (ss_res / ss_tot)
+  rmse <- sqrt(mean((actuals - preds)^2))
+
+  # Return model and metrics
+  list(
+    model = model,
+    r_squared = r_sq,
+    rmse = rmse
+  )
+}
+
