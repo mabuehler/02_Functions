@@ -50,7 +50,7 @@ CO2_kjeldsen_corr <- function(hpu, factor, N) { # CO2 production and correct it 
 	}
 }
 
-CO2_kjeldsen_enteric_corr <- function(hpu, N) { # CO2 production and correct it with linear regression from Kjeldsen et al. 2024
+CO2_kjeldsen_metabolic_corr <- function(hpu, N) { # CO2 production and correct it with linear regression from Kjeldsen et al. 2024
   if(is.na(hpu) | is.na(N)) {
     0
   } else {
@@ -195,6 +195,152 @@ CO2_kjeldsen_mod3 <- function(dt, EFK = FALSE) {
 } 
 
 
+###########################################
+### Adding mean bias to Kjeldsen models ###
+###########################################
+
+
+      CO2_kjeldsen_mod1_MBcorr <- function(dt, EFK = FALSE) {
+        ### Holstein
+        if (dt$breed == 'Holstein') {
+          if (EFK) {
+            # 1. parity
+            CO2_gd_p1 <- dt$N_par1 * (1134 + 956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) - 777 + (206 * dt$DMI_la_EFK) + (0.00 * dt$DMI_la_EFK) + (-18.5 * (dt$weight_la)^0.75))
+            # 2. parity
+            CO2_gd_p2 <- dt$N_par2 * (1134 + 956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) - 777 + (206 * dt$DMI_la_EFK) + (7.53 * dt$DMI_la_EFK) + (-18.5 * (dt$weight_la)^0.75))
+            # 3.+ parity
+            CO2_gd_p3 <- dt$N_par3 * (1134 + 956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) - 777 + (206 * dt$DMI_la_EFK) + (15.7 * dt$DMI_la_EFK) + (-18.5 * (dt$weight_la)^0.75))
+          } else {
+            # 1. parity
+            CO2_gd_p1 <- dt$N_par1 * (1134 + 956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la) + (0.00 * dt$DMI_la) + (-18.5 * (dt$weight_la)^0.75))
+            # 2. parity
+            CO2_gd_p2 <- dt$N_par2 * (1134 + 956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la) + (7.53 * dt$DMI_la) + (-18.5 * (dt$weight_la)^0.75))
+            # 3.+ parity
+            CO2_gd_p3 <- dt$N_par3 * (1134 + 956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) - 777 + (206 * dt$DMI_la) + (15.7 * dt$DMI_la) + (-18.5 * (dt$weight_la)^0.75))
+          }
+          CO2_kd <- round((CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000)
+        }
+
+        ### Jersey
+       if (dt$breed == 'Jersey') {
+        if (EFK) {
+        # 1. parity
+        CO2_gd_p1 <- dt$N_par1 * (1134 + 956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) + 1103 + (204 * dt$DMI_la_EFK) + (0.00 * dt$DMI_la_EFK) + (-37.3 * (dt$weight_la)^0.75))
+        # 2. parity
+        CO2_gd_p2 <- dt$N_par2 * (1134 + 956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) + 1103 + (204 * dt$DMI_la_EFK) + (7.53 * dt$DMI_la_EFK) + (-37.3 * (dt$weight_la)^0.75))
+        # 3.+ parity
+        CO2_gd_p3 <- dt$N_par3 * (1134 + 956 + (122 * dt$DMI_la_EFK) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la_EFK) + 1103 + (204 * dt$DMI_la_EFK) + (15.7 * dt$DMI_la_EFK) + (-37.3 * (dt$weight_la)^0.75))
+        } else {
+          # 1. parity
+          CO2_gd_p1 <- dt$N_par1 * (1134 + 956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la) + (0.00 * dt$DMI_la) + (-37.3 * (dt$weight_la)^0.75))
+          # 2. parity
+          CO2_gd_p2 <- dt$N_par2 * (1134 + 956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la) + (7.53 * dt$DMI_la) + (-37.3 * (dt$weight_la)^0.75))
+          # 3.+ parity
+          CO2_gd_p3 <- dt$N_par3 * (1134 + 956 + (122 * dt$DMI_la) + (60.4 * (dt$weight_la)^0.75) + (3.44 * dt$DCP_la) + 1103 + (204 * dt$DMI_la) + (15.7 * dt$DMI_la) + (-37.3 * (dt$weight_la)^0.75))
+          }
+        CO2_kd <- round((CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000)
+        }
+        CO2_kd
+      } 
+
+      CO2_kjeldsen_mod2_MBcorr <- function(dt, EFK = FALSE) {
+        # browser()
+        # CO2 <- b0 + (bECM * ECM) + (bBW075 * BW75) + (bMCF * MCF) + (bDIM * DIM) + breed + (bDIMDCF * DIM * DCF) + (bECMDIM * ECM * DIM) + (bECMBW * ECM * BW) + (bMCFBW * MCF * BW) + (bBWbreed * BW) + (bDIMbreed * DIM) + (bBWparity * BW)
+        # CO2 <- -6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + breed + (-0.122 * dt$DIM_la * dt$DCF_tot_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (bBWbreed * (dt$weight_la)^0.75) + (bDIMbreed * dt$DIM_la) + (bBWparity * (dt$weight_la)^0.75)
+        ### Holstein
+        if (dt$breed == 'Holstein') {
+          if (EFK) {
+          # 1. parity
+          CO2_gd_p1 <- dt$N_par1 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la_EFK) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-5.96 * (dt$weight_la)^0.75) + (2.06 * dt$DIM_la) + (0.00 * (dt$weight_la)^0.75))
+          # 2. parity
+          CO2_gd_p2 <- dt$N_par2 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la_EFK) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-5.96 * (dt$weight_la)^0.75) + (2.06 * dt$DIM_la) + (3.66 * (dt$weight_la)^0.75))
+          # 3.+ parity
+          CO2_gd_p3 <- dt$N_par3 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la_EFK) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-5.96 * (dt$weight_la)^0.75) + (2.06 * dt$DIM_la) + (4.01 * (dt$weight_la)^0.75))
+          } else {
+            # 1. parity
+            CO2_gd_p1 <- dt$N_par1 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-5.96 * (dt$weight_la)^0.75) + (2.06 * dt$DIM_la) + (0.00 * (dt$weight_la)^0.75))
+            # 2. parity
+            CO2_gd_p2 <- dt$N_par2 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-5.96 * (dt$weight_la)^0.75) + (2.06 * dt$DIM_la) + (3.66 * (dt$weight_la)^0.75))
+            # 3.+ parity
+            CO2_gd_p3 <- dt$N_par3 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 2117 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-5.96 * (dt$weight_la)^0.75) + (2.06 * dt$DIM_la) + (4.01 * (dt$weight_la)^0.75))
+            }
+          CO2_kd <- round((CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000)
+        }
+
+        ### Jersey
+       if (dt$breed == 'Jersey') {
+        if (EFK) {
+        # 1. parity
+        CO2_gd_p1 <- dt$N_par1 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la_EFK) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-1.03 * (dt$weight_la)^0.75) + (2.49 * dt$DIM_la) + (0.00 * (dt$weight_la)^0.75))
+        # 2. parity
+        CO2_gd_p2 <- dt$N_par2 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la_EFK) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-1.03 * (dt$weight_la)^0.75) + (2.49 * dt$DIM_la) + (3.66 * (dt$weight_la)^0.75))
+        # 3.+ parity
+        CO2_gd_p3 <- dt$N_par3 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la_EFK) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-1.03 * (dt$weight_la)^0.75) + (2.49 * dt$DIM_la) + (4.01 * (dt$weight_la)^0.75))
+        } else {
+          # 1. parity
+          CO2_gd_p1 <- dt$N_par1 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-1.03 * (dt$weight_la)^0.75) + (2.49 * dt$DIM_la) + (0.00 * (dt$weight_la)^0.75))
+          # 2. parity
+          CO2_gd_p2 <- dt$N_par2 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-1.03 * (dt$weight_la)^0.75) + (2.49 * dt$DIM_la) + (3.66 * (dt$weight_la)^0.75))
+          # 3.+ parity
+          CO2_gd_p3 <- dt$N_par3 * (1192 - 6134 + (213 * dt$ECM) + (126 * (dt$weight_la)^0.75) + (52.5 * dt$MCF) + (-5.13 * dt$DIM_la) + 1364 + (-0.122 * dt$DIM_la * dt$DCF_la) + (0.386 * dt$ECM * dt$DIM_la) + (-1.18 * dt$ECM * (dt$weight_la)^0.75) + (-0.614 * dt$MCF * (dt$weight_la)^0.75) + (-1.03 * (dt$weight_la)^0.75) + (2.49 * dt$DIM_la) + (4.01 * (dt$weight_la)^0.75))
+          } 
+        CO2_kd <- round((CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000)
+        }
+        CO2_kd
+      } 
+
+
+      CO2_kjeldsen_mod3_MBcorr <- function(dt, EFK = FALSE) {
+        # CO2 <- b0 + (bECM * ECM) + (bDIM * DIM_la) + breed + parity + (bbreedparity) + (bDIMDCF * DIM * DCF) + (bECMDIM * ECM * DIM) + (bDIMbreed * DIM) + (bMCFparity * MCF)
+        # CO2 <- 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) + breed + parity + (bbreedparity) + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (bDIMbreed * dt$DIM_la) + (bMCFparity * dt$MCF)
+        ### Holstein
+        if (dt$breed == 'Holstein') {
+          if (EFK) {
+          # 1. parity
+          CO2_gd_p1 <- dt$N_par1 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 +    0 +   0 + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-4.18 * dt$MCF))
+          # 2. parity
+          CO2_gd_p2 <- dt$N_par2 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 +  511 + 775 + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-10.5 * dt$MCF))
+          # 3.+ parity
+          CO2_gd_p3 <- dt$N_par3 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 + 1587 + 803 + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-28.8 * dt$MCF))
+          } else {
+            # 1. parity
+            CO2_gd_p1 <- dt$N_par1 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 +   0 +    0 + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-4.18 * dt$MCF))
+            # 2. parity
+            CO2_gd_p2 <- dt$N_par2 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 +  511 + 775 + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-10.5 * dt$MCF))
+            # 3.+ parity
+            CO2_gd_p3 <- dt$N_par3 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 49.0 + 1587 + 803 + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.05 * dt$DIM_la) + (-28.8 * dt$MCF))
+            }       
+          CO2_kd <- round((CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000)
+        }
+
+        ### Jersey
+       if (dt$breed == 'Jersey') {
+        if (EFK) {
+        # 1. parity
+        CO2_gd_p1 <- dt$N_par1 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 +    0 +    0 + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-4.18 * dt$MCF))
+        # 2. parity
+        CO2_gd_p2 <- dt$N_par2 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 +  511 +  608 + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-10.5 * dt$MCF))
+        # 3.+ parity
+        CO2_gd_p3 <- dt$N_par3 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 1587 + 1307 + (-0.149 * dt$DIM_la * dt$DCF_la_EFK) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-28.8 * dt$MCF))
+        } else {
+          # 1. parity
+          CO2_gd_p1 <- dt$N_par1 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 +    0 +    0 + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-4.18 * dt$MCF))
+          # 2. parity
+          CO2_gd_p2 <- dt$N_par2 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 +  511 +  608 + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-10.5 * dt$MCF))
+          # 3.+ parity
+          CO2_gd_p3 <- dt$N_par3 * (1619 + 8781 + (80.3 * dt$ECM) + (-4.66 * dt$DIM_la) - 2321 + 1587 + 1307 + (-0.149 * dt$DIM_la * dt$DCF_la) + (0.338 * dt$ECM * dt$DIM_la) + (6.02 * dt$DIM_la) + (-28.8 * dt$MCF))
+          } 
+        CO2_kd <- round((CO2_gd_p1 + CO2_gd_p2 + CO2_gd_p3) / 1000)
+        }
+        CO2_kd
+      } 
+
+
+
+
+
+
+
 
 calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the data.table with all the information
   Period <- DT[farm == Farm, unique(period)] 
@@ -223,65 +369,75 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
 
     ##### CO2 production:
     # lactating cows
-    CO2_CIGR_enteric_la <- CO2_calc(hpu = hpu_la, factor = 0.18, N = dt_sub$N_la)
+    CO2_CIGR_metabolic_la <- CO2_calc(hpu = hpu_la, factor = 0.18, N = dt_sub$N_la)
     CO2_CIGR_la <- CO2_calc(hpu = hpu_la, factor = dt_sub$fac_la, N = dt_sub$N_la)
-    CO2_CIGR_slurry_la <- CO2_CIGR_la - CO2_CIGR_enteric_la
+    CO2_CIGR_slurry_la <- CO2_CIGR_la - CO2_CIGR_metabolic_la
     # dry cows
-    CO2_CIGR_enteric_dr <- CO2_calc(hpu = hpu_dr, factor = 0.18, N = dt_sub$N_dr)
+    CO2_CIGR_metabolic_dr <- CO2_calc(hpu = hpu_dr, factor = 0.18, N = dt_sub$N_dr)
     CO2_CIGR_dr <- CO2_calc(hpu = hpu_dr, factor = dt_sub$fac_dr, N = dt_sub$N_dr)
-    CO2_CIGR_slurry_dr <- CO2_CIGR_dr - CO2_CIGR_enteric_dr
+    CO2_CIGR_slurry_dr <- CO2_CIGR_dr - CO2_CIGR_metabolic_dr
     # kaelvekvier
-    CO2_CIGR_enteric_kk <- CO2_calc(hpu = hpu_kk, factor = 0.18, N = dt_sub$N_kk)
+    CO2_CIGR_metabolic_kk <- CO2_calc(hpu = hpu_kk, factor = 0.18, N = dt_sub$N_kk)
     CO2_CIGR_kk <- CO2_calc(hpu = hpu_kk, factor = dt_sub$fac_kk, N = dt_sub$N_kk)
-    CO2_CIGR_slurry_kk <- CO2_CIGR_kk - CO2_CIGR_enteric_kk
+    CO2_CIGR_slurry_kk <- CO2_CIGR_kk - CO2_CIGR_metabolic_kk
     # heifers
-    CO2_CIGR_enteric_he <- CO2_calc(hpu = hpu_he, factor = 0.18, N = dt_sub$N_he)
+    CO2_CIGR_metabolic_he <- CO2_calc(hpu = hpu_he, factor = 0.18, N = dt_sub$N_he)
     CO2_CIGR_he <- CO2_calc(hpu = hpu_he, factor = dt_sub$fac_he, N = dt_sub$N_he)
-    CO2_CIGR_slurry_he <- CO2_CIGR_he - CO2_CIGR_enteric_he
+    CO2_CIGR_slurry_he <- CO2_CIGR_he - CO2_CIGR_metabolic_he
     # calves
-    CO2_CIGR_enteric_ca <- CO2_calc(hpu = hpu_ca, factor = dt_sub$fac_ca, N = dt_sub$N_ca)
+    CO2_CIGR_metabolic_ca <- CO2_calc(hpu = hpu_ca, factor = dt_sub$fac_ca, N = dt_sub$N_ca)
     CO2_CIGR_ca <- CO2_calc(hpu = hpu_ca, factor = dt_sub$fac_ca, N = dt_sub$N_ca)
-    CO2_CIGR_slurry_ca <- CO2_CIGR_ca - CO2_CIGR_enteric_ca
+    CO2_CIGR_slurry_ca <- CO2_CIGR_ca - CO2_CIGR_metabolic_ca
 
     ##### CO2 production with a correction of Kjeldsen according to Figure 3. Only for lactating cows:
-    CO2_CIGR_Kjel_enteric_la <- CO2_kjeldsen_enteric_corr(hpu = hpu_la, N = dt_sub$N_la)
+    CO2_CIGR_Kjel_metabolic_la <- CO2_kjeldsen_metabolic_corr(hpu = hpu_la, N = dt_sub$N_la)
 
 
     ############################
     ### Kjeldsen et al. (2024):
  
     ##### Model 1-3:
-    CO2_Kjel_mod1_enteric_la <- CO2_kjeldsen_mod1(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure 
-    CO2_Kjel_mod2_enteric_la <- CO2_kjeldsen_mod2(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
-    CO2_Kjel_mod3_enteric_la <- CO2_kjeldsen_mod3(dt_sub) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod1_metabolic_la <- CO2_kjeldsen_mod1(dt_sub) 
+    CO2_Kjel_mod2_metabolic_la <- CO2_kjeldsen_mod2(dt_sub)
+    CO2_Kjel_mod3_metabolic_la <- CO2_kjeldsen_mod3(dt_sub)
+    ## mean bias correction according to Table 5
+    CO2_Kjel_mod1_MBcorr_metabolic_la <- CO2_kjeldsen_mod1_MBcorr(dt_sub)
+    CO2_Kjel_mod2_MBcorr_metabolic_la <- CO2_kjeldsen_mod2_MBcorr(dt_sub)
+    CO2_Kjel_mod3_MBcorr_metabolic_la <- CO2_kjeldsen_mod3_MBcorr(dt_sub)
 
     ##### Model 1-3 with EFK values
-    CO2_Kjel_mod1_enteric_la_EFK <- CO2_kjeldsen_mod1(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
-    CO2_Kjel_mod2_enteric_la_EFK <- CO2_kjeldsen_mod2(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
-    CO2_Kjel_mod3_enteric_la_EFK <- CO2_kjeldsen_mod3(dt_sub, EFK = TRUE) + CO2_calc(hpu_la, dt_sub$fac_la, dt_sub$N_la) - CO2_calc(hpu_la, 0.18, dt_sub$N_la) ## add CO2 from the manure
+    CO2_Kjel_mod1_metabolic_la_EFK <- CO2_kjeldsen_mod1(dt_sub, EFK = TRUE)
+    CO2_Kjel_mod2_metabolic_la_EFK <- CO2_kjeldsen_mod2(dt_sub, EFK = TRUE)
+    CO2_Kjel_mod3_metabolic_la_EFK <- CO2_kjeldsen_mod3(dt_sub, EFK = TRUE)
 
     ##### Write table:
     data.table(
       farm = Farm,
       period = P,
-      CO2_CIGR_enteric_la = CO2_CIGR_enteric_la,
-      CO2_CIGR_enteric_dr = CO2_CIGR_enteric_dr,
-      CO2_CIGR_enteric_kk = CO2_CIGR_enteric_kk,
-      CO2_CIGR_enteric_he = CO2_CIGR_enteric_he,
-      CO2_CIGR_enteric_ca = CO2_CIGR_enteric_ca,
-      CO2_CIGR_Kjel_enteric_la = CO2_CIGR_Kjel_enteric_la,
-      CO2_Kjel_mod1_enteric_la = CO2_Kjel_mod1_enteric_la,
-      CO2_Kjel_mod2_enteric_la = CO2_Kjel_mod2_enteric_la,
-      CO2_Kjel_mod3_enteric_la = CO2_Kjel_mod3_enteric_la,
-      CO2_Kjel_mod1_enteric_la_EFK = CO2_Kjel_mod1_enteric_la_EFK,
-      CO2_Kjel_mod2_enteric_la_EFK = CO2_Kjel_mod2_enteric_la_EFK,
-      CO2_Kjel_mod3_enteric_la_EFK = CO2_Kjel_mod3_enteric_la_EFK,
-      CO2_CIGR_enteric_drkkheca = CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
-      CO2_CIGR_enteric_total = CO2_CIGR_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
-      CO2_CIGR_Kjel_enteric_total = CO2_CIGR_Kjel_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
-      CO2_Kjel_mod1_CIGR_enteric_total = CO2_Kjel_mod1_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
-      CO2_Kjel_mod2_CIGR_enteric_total = CO2_Kjel_mod2_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
-      CO2_Kjel_mod3_CIGR_enteric_total = CO2_Kjel_mod3_enteric_la + CO2_CIGR_enteric_dr + CO2_CIGR_enteric_kk + CO2_CIGR_enteric_he + CO2_CIGR_enteric_ca,
+      CO2_CIGR_metabolic_la = CO2_CIGR_metabolic_la,
+      CO2_CIGR_metabolic_dr = CO2_CIGR_metabolic_dr,
+      CO2_CIGR_metabolic_kk = CO2_CIGR_metabolic_kk,
+      CO2_CIGR_metabolic_he = CO2_CIGR_metabolic_he,
+      CO2_CIGR_metabolic_ca = CO2_CIGR_metabolic_ca,
+      CO2_CIGR_Kjel_metabolic_la = CO2_CIGR_Kjel_metabolic_la,
+      CO2_Kjel_mod1_metabolic_la = CO2_Kjel_mod1_metabolic_la,
+      CO2_Kjel_mod2_metabolic_la = CO2_Kjel_mod2_metabolic_la,
+      CO2_Kjel_mod3_metabolic_la = CO2_Kjel_mod3_metabolic_la,
+      CO2_Kjel_mod1_MBcorr_metabolic_la = CO2_Kjel_mod1_MBcorr_metabolic_la,
+      CO2_Kjel_mod2_MBcorr_metabolic_la = CO2_Kjel_mod2_MBcorr_metabolic_la,
+      CO2_Kjel_mod3_MBcorr_metabolic_la = CO2_Kjel_mod3_MBcorr_metabolic_la,
+      CO2_Kjel_mod1_metabolic_la_EFK = CO2_Kjel_mod1_metabolic_la_EFK,
+      CO2_Kjel_mod2_metabolic_la_EFK = CO2_Kjel_mod2_metabolic_la_EFK,
+      CO2_Kjel_mod3_metabolic_la_EFK = CO2_Kjel_mod3_metabolic_la_EFK,
+      CO2_CIGR_metabolic_drkkheca = CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
+      CO2_CIGR_metabolic_total = CO2_CIGR_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
+      CO2_CIGR_Kjel_metabolic_total = CO2_CIGR_Kjel_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
+      CO2_Kjel_mod1_CIGR_metabolic_total = CO2_Kjel_mod1_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
+      CO2_Kjel_mod2_CIGR_metabolic_total = CO2_Kjel_mod2_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
+      CO2_Kjel_mod3_CIGR_metabolic_total = CO2_Kjel_mod3_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
+      CO2_Kjel_mod1_MBcorr_CIGR_metabolic_total = CO2_Kjel_mod1_MBcorr_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
+      CO2_Kjel_mod2_MBcorr_CIGR_metabolic_total = CO2_Kjel_mod2_MBcorr_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
+      CO2_Kjel_mod3_MBcorr_CIGR_metabolic_total = CO2_Kjel_mod3_MBcorr_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
       CO2_CIGR_slurry_la = CO2_CIGR_slurry_la,
       CO2_CIGR_slurry_dr = CO2_CIGR_slurry_dr,
       CO2_CIGR_slurry_kk = CO2_CIGR_slurry_kk,
