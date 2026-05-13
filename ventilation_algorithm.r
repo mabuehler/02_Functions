@@ -492,3 +492,155 @@ build_single_model <- function(data, pred = 'AER', var = c('mean_wind_speed', 'T
   )
 }
 
+
+
+
+library(car)
+
+non_lin_reg <- function(
+    data,
+    pred = "AER",
+    var = c("mean_wind_speed", "Temp_K", "diff_WD"),
+    place = c("Odder", "Gjerlev", "Lindå", "Auning", "Hobro"),
+    type = c("Control", "Acid"),
+    position = c("Position 1", "Position 2"),
+    min_samples = 10,
+    degree = 2,
+    interactions = TRUE
+) {
+
+  # Filter base data
+  dt <- copy(
+    data[
+      Place %in% place &
+      Type %in% type &
+      Measurement_point %in% position
+    ]
+  )
+
+  # Combinations
+  combos <- CJ(
+    place = place,
+    type = type,
+    position = position,
+    unique = TRUE
+  )
+
+  # Count valid samples AFTER NA removal
+  combos[, n := mapply(function(p, t, pos) {
+
+    dt_sub <- dt[
+      Place == p &
+      Type == t &
+      Measurement_point == pos
+    ]
+
+    dt_sub <- na.omit(dt_sub[, c(pred, var), with = FALSE])
+
+    nrow(dt_sub)
+
+  }, place, type, position)]
+
+  combos_valid <- combos[n >= min_samples]
+
+  cat("\nCombinations tested:\n")
+  print(combos_valid, nrows = Inf)
+
+  # Formula builder
+  build_formula <- function(pred, vars, degree = 2, interactions = TRUE) {
+
+    terms <- vars
+
+    # Polynomial terms
+    if (degree >= 2) {
+      poly_terms <- unlist(
+        lapply(2:degree, function(d) {
+          paste0("I(", vars, "^", d, ")")
+        })
+      )
+      terms <- c(terms, poly_terms)
+    }
+
+    # Interactions
+    if (interactions && length(vars) > 1) {
+      inter_terms <- combn(
+        vars,
+        2,
+        FUN = function(x) paste0(x[1], ":", x[2])
+      )
+      terms <- c(terms, inter_terms)
+    }
+
+    as.formula(paste(pred, "~", paste(terms, collapse = " + ")))
+  }
+
+  # Fit function
+  fit_one <- function(p, t, pos) {
+
+    dt_sub <- dt[
+      Place == p &
+      Type == t &
+      Measurement_point == pos
+    ]
+
+    dt_sub <- na.omit(dt_sub[, c(pred, var), with = FALSE])
+
+    if (nrow(dt_sub) < min_samples) return(NULL)
+
+    # --------------------------- #
+    # CENTERING STEP (IMPORTANT)
+    # --------------------------- #
+    means <- dt_sub[, lapply(.SD, mean), .SDcols = var]
+
+    for (v in var) {
+      dt_sub[, (v) := get(v) - means[[v]]]
+    }
+
+    # Build formula
+    formula_obj <- build_formula(
+      pred = pred,
+      vars = var,
+      degree = degree,
+      interactions = interactions
+    )
+
+    # Fit model
+    model <- lm(formula_obj, data = dt_sub)
+
+    # VIFs
+    vif_terms <- tryCatch(
+      suppressWarnings(round(vif(model))),
+      error = function(e) NA
+    )
+
+    # Return
+    list(
+      place = p,
+      type = t,
+      position = pos,
+      n = nrow(dt_sub),
+      means = means,              # IMPORTANT for deployment
+      formula = formula_obj,
+      model = model,
+      summary = summary(model),
+      vif_terms = vif_terms
+    )
+  }
+
+  # Run all models
+  results <- lapply(
+    1:nrow(combos_valid),
+    function(i) {
+      fit_one(
+        combos_valid$place[i],
+        combos_valid$type[i],
+        combos_valid$position[i]
+      )
+    }
+  )
+
+  # Remove NULLs
+  results <- Filter(Negate(is.null), results)
+
+  return(results)
+}
