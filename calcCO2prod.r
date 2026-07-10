@@ -364,6 +364,7 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
     ## kaelvekvier and heifers
     hpu_kk <- hpu_heifer(weight = dt_sub$weight_kk, gain = dt_sub$gain_kk, energy = dt_sub$energy_kk, DinP = dt_sub$DIP_kk)
     hpu_he <- hpu_heifer(weight = dt_sub$weight_he, gain = dt_sub$gain_he, energy = dt_sub$energy_he, DinP = dt_sub$DIP_he)
+    hpu_hk <- hpu_heifer(weight = dt_sub$weight_hk, gain = dt_sub$gain_hk, energy = dt_sub$energy_hk, DinP = dt_sub$DIP_hk)
     # calves
     hpu_ca <- hpu_calf(weight = dt_sub$weight_ca, gain = dt_sub$gain_ca)
 
@@ -384,6 +385,10 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
     CO2_CIGR_metabolic_he <- CO2_calc(hpu = hpu_he, factor = 0.18, N = dt_sub$N_he)
     CO2_CIGR_he <- CO2_calc(hpu = hpu_he, factor = dt_sub$fac_he, N = dt_sub$N_he)
     CO2_CIGR_slurry_he <- CO2_CIGR_he - CO2_CIGR_metabolic_he
+    # heifers and kaelvekvier together
+    CO2_CIGR_metabolic_hk <- CO2_calc(hpu = hpu_hk, factor = 0.18, N = dt_sub$N_hk)
+    CO2_CIGR_hk <- CO2_calc(hpu = hpu_hk, factor = dt_sub$fac_hk, N = dt_sub$N_hk)
+    CO2_CIGR_slurry_hk <- CO2_CIGR_hk - CO2_CIGR_metabolic_hk
     # calves
     CO2_CIGR_metabolic_ca <- CO2_calc(hpu = hpu_ca, factor = dt_sub$fac_ca, N = dt_sub$N_ca)
     CO2_CIGR_ca <- CO2_calc(hpu = hpu_ca, factor = dt_sub$fac_ca, N = dt_sub$N_ca)
@@ -409,6 +414,11 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
     CO2_Kjel_mod1_metabolic_la_EFK <- CO2_kjeldsen_mod1(dt_sub, EFK = TRUE)
     CO2_Kjel_mod2_metabolic_la_EFK <- CO2_kjeldsen_mod2(dt_sub, EFK = TRUE)
     CO2_Kjel_mod3_metabolic_la_EFK <- CO2_kjeldsen_mod3(dt_sub, EFK = TRUE)
+    ## mean bias correction according to Table 5
+    CO2_Kjel_mod1_MBcorr_metabolic_la_EFK <- CO2_kjeldsen_mod1_MBcorr(dt_sub, EFK = TRUE)
+    CO2_Kjel_mod2_MBcorr_metabolic_la_EFK <- CO2_kjeldsen_mod2_MBcorr(dt_sub, EFK = TRUE)
+    CO2_Kjel_mod3_MBcorr_metabolic_la_EFK <- CO2_kjeldsen_mod3_MBcorr(dt_sub, EFK = TRUE)
+    
 
     ##### Write table:
     data.table(
@@ -418,6 +428,7 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
       CO2_CIGR_metabolic_dr = CO2_CIGR_metabolic_dr,
       CO2_CIGR_metabolic_kk = CO2_CIGR_metabolic_kk,
       CO2_CIGR_metabolic_he = CO2_CIGR_metabolic_he,
+      CO2_CIGR_metabolic_hk = CO2_CIGR_metabolic_hk,
       CO2_CIGR_metabolic_ca = CO2_CIGR_metabolic_ca,
       CO2_CIGR_Kjel_metabolic_la = CO2_CIGR_Kjel_metabolic_la,
       CO2_Kjel_mod1_metabolic_la = CO2_Kjel_mod1_metabolic_la,
@@ -431,6 +442,7 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
       CO2_Kjel_mod3_metabolic_la_EFK = CO2_Kjel_mod3_metabolic_la_EFK,
       CO2_CIGR_metabolic_drkkheca = CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
       CO2_CIGR_metabolic_total = CO2_CIGR_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
+      CO2_CIGR_metabolic_total_hk = CO2_CIGR_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_hk + CO2_CIGR_metabolic_ca,
       CO2_CIGR_Kjel_metabolic_total = CO2_CIGR_Kjel_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
       CO2_Kjel_mod1_CIGR_metabolic_total = CO2_Kjel_mod1_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
       CO2_Kjel_mod2_CIGR_metabolic_total = CO2_Kjel_mod2_metabolic_la + CO2_CIGR_metabolic_dr + CO2_CIGR_metabolic_kk + CO2_CIGR_metabolic_he + CO2_CIGR_metabolic_ca,
@@ -442,6 +454,7 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
       CO2_CIGR_slurry_dr = CO2_CIGR_slurry_dr,
       CO2_CIGR_slurry_kk = CO2_CIGR_slurry_kk,
       CO2_CIGR_slurry_he = CO2_CIGR_slurry_he,
+      CO2_CIGR_slurry_hk = CO2_CIGR_slurry_hk,
       CO2_CIGR_slurry_ca = CO2_CIGR_slurry_ca,
       CO2_CIGR_slurry_drkkheca = CO2_CIGR_slurry_dr + CO2_CIGR_slurry_kk + CO2_CIGR_slurry_he + CO2_CIGR_slurry_ca,
       CO2_CIGR_slurry_total = CO2_CIGR_slurry_la + CO2_CIGR_slurry_dr + CO2_CIGR_slurry_kk + CO2_CIGR_slurry_he + CO2_CIGR_slurry_ca,
@@ -449,12 +462,14 @@ calcCO2prod <- function(DT, Farm = NULL, ECM = TRUE) { # function to create the 
       N_dr = dt_sub$N_dr,
       N_kk = dt_sub$N_kk,
       N_he = dt_sub$N_he,
+      N_hk = dt_sub$N_hk,
       N_ca = dt_sub$N_ca,
       N_all = dt_sub$N_la + dt_sub$N_dr + dt_sub$N_kk + dt_sub$N_he + dt_sub$N_ca,
       weight_la = dt_sub$weight_la,
       weight_dr = dt_sub$weight_dr,
       weight_kk = dt_sub$weight_kk,
       weight_he = dt_sub$weight_he,
+      weight_hk = dt_sub$weight_hk,
       weight_ca = dt_sub$weight_ca,
       weight_all = dt_sub$weight_la * dt_sub$N_la + dt_sub$weight_dr * dt_sub$N_dr + dt_sub$weight_kk * dt_sub$N_kk + dt_sub$weight_he * dt_sub$N_he + dt_sub$weight_ca * dt_sub$N_ca
     )

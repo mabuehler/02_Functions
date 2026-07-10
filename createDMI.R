@@ -29,7 +29,7 @@ createDMI <- function(API = NULL, cellId, req_datetime, req_parameter = c('mean_
 }
 
 
-observationDMI <- function(API, stationId, req_datetime, req_parameter = c('temp_dry', 'wind_dir','wind_speed','pressure')) {
+observationDMI <- function(API = NULL, stationId, req_datetime, req_parameter = c('temp_dry', 'wind_dir','wind_speed','pressure')) {
 ##### Define variables that are always the same:
 # browser()
   url <- 'https://dmigw.govcloud.dk/v2/metObs/collections/observation/items?'
@@ -45,7 +45,7 @@ observationDMI <- function(API, stationId, req_datetime, req_parameter = c('temp
     par_list <- lapply(req_parameter, function(x) {
   # browser()
       parameterId <- paste0('parameterId=', x)
-      v7 <- GET(paste(url, stationId, datetime, parameterId, limit, API, sep = '&'))
+      v7 <- GET(paste(url, stationId, datetime, parameterId, limit, sep = '&'))
       data_raw <- fromJSON(rawToChar(v7$content))
       dt <- as.data.table(data_raw[[2]][[4]])
       dt[, st := as.POSIXct(observed, format = '%Y-%m-%dT%H:%M:%S', tz = 'UTC')]
