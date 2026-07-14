@@ -16,6 +16,8 @@ aggregate_dt <- function(dt, by, cov_col = 'hours') {
   num_cols  <- setdiff(num_cols, c("WD", cov_col, by))
   char_cols <- names(dt)[sapply(dt, is.character)]
   char_cols <- setdiff(char_cols, by)
+  factor_cols <- names(dt)[sapply(dt, is.factor)]
+  factor_cols <- setdiff(factor_cols, by)
   # make it also work for dates and times
   date_cols <- names(dt)[sapply(dt, function(x) inherits(x, "Date") || inherits(x, "POSIXt"))]
   date_cols <- setdiff(date_cols, by)
@@ -24,7 +26,7 @@ aggregate_dt <- function(dt, by, cov_col = 'hours') {
   original_order <- names(dt)
   
   # define SD columns (only include cov_col if present)
-  sd_cols <- c(num_cols, char_cols, date_cols)
+  sd_cols <- c(num_cols, char_cols, factor_cols, date_cols)
   if (cov_col %in% names(dt)) sd_cols <- c(sd_cols, cov_col)
   
   result <- dt[, {
@@ -52,7 +54,9 @@ aggregate_dt <- function(dt, by, cov_col = 'hours') {
     
     # character columns (take first value, as they should be the same)
     chars <- lapply(.SD[, char_cols, with = FALSE], function(z) z[1L])
-    
+    # factor columns (take the first value, as the rest should be the same)
+    factors <- lapply(.SD[, factor_cols, with =FALSE], function(z) z[1L])
+
     # sum coverage (if present)
     coverage_sum <- NULL
     if (cov_col %in% names(dt)) {
@@ -60,7 +64,7 @@ aggregate_dt <- function(dt, by, cov_col = 'hours') {
     }
     
     # combine results
-    c(num_means, date_means, if (!is.null(wd_mean)) list(WD = wd_mean), chars, if (!is.null(coverage_sum)) setNames(list(coverage_sum), cov_col))
+    c(num_means, date_means, if (!is.null(wd_mean)) list(WD = wd_mean), chars, factors, if (!is.null(coverage_sum)) setNames(list(coverage_sum), cov_col))
 
   }, by = by, .SDcols = sd_cols]
   
