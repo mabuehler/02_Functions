@@ -30,8 +30,8 @@ ls_temp <- lapply(ls_files, function(x) {
 })
 out <- rbindlist(ls_temp)
 out[, st := convert_date(st, tz = 'CET')]
-out[, Temp := as.character(Temp)]
-out[, RH := as.character(RH)]
+out[, Temp := as.numeric(Temp)]
+out[, RH := as.numeric(RH)]
 out
 }
 
