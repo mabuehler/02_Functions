@@ -8,39 +8,88 @@
 ####################################################################################################
 
 library(bLSmodelR)
-library(osmdata)
+# library(osmdata)
 library(sf)
+library(httr2)
 
+create_polygons <- function(bottom, left, top, right, transform = TRUE, rename = TRUE) {
+  query <- sprintf(
+    '[out:json][timeout:25];
+    (
+      way["building"](%f,%f,%f,%f);
+      relation["building"](%f,%f,%f,%f);
+    );
+    out geom;',
+    bottom, left, top, right,
+    bottom, left, top, right
+  )
 
-create_polygons <- function(bottom, left, top, right, feature = 'building', transform  = TRUE, rename = TRUE){
-# browser()
-  assign("has_internet_via_proxy", TRUE, environment(curl::has_internet)) # otherwise for unknow reason it does not work.
+  # response <- request(
+  #   "https://overpass-api.de/api/interpreter"
+  # ) |>
+  #   req_body_form(data = query) |>
+  #   req_perform()
+  req <- request("https://overpass-api.de/api/interpreter")
+  req <- req_body_form(req, data = query)
+  response <- req_perform(req)
+  osm_json <- resp_body_json(response)
 
-  ## extract data according to coordinates
-  bbox <- opq(c(left, bottom, right, top))
-  # browser()
-  osm_feature <- add_osm_feature(bbox, key = feature)
-  data_raw <- osmdata_sf(osm_feature)
+  # Extract polygons
+  polys <- lapply(osm_json$elements, function(x) {
+    if (is.null(x$geometry)) return(NULL)
+    coords <- do.call(rbind, lapply(x$geometry, function(p) c(p$lon, p$lat)))
+    st_polygon(list(coords))
+  })
 
-  # Extract polygon data
-  geometry_polygons <- data_raw$osm_polygons
-  ## transform to Danish coordinate system
-  if(transform){geometry_polygons$geometry <- st_transform(geometry_polygons$geometry, crs = "+proj=utm +zone=33 +datum=WGS84")}
-  ## extract coordinates
+  polys <- polys[!sapply(polys, is.null)]
+  geometry_polygons <- st_sf(geometry = st_sfc(polys, crs = 4326)  )
 
-  coords <- as.data.table(st_coordinates(geometry_polygons$geometry))
-  osm_id <- data.table(osmID = geometry_polygons$osm_id, L2 = coords[, unique(L2)])
-  coords[, L2 <- as.character(L2)]
+  if(transform) {
+    geometry_polygons <- st_transform(geometry_polygons, crs = "+proj=utm +zone=33 +datum=WGS84")
+  }
 
-  coord_dt <- merge(coords, osm_id, by = 'L2')
+  coords <- as.data.table(st_coordinates(geometry_polygons))
+  osm_id <- data.table(osmID = seq_len(nrow(geometry_polygons)), L2 = unique(coords$L2))
+  coord_dt <- merge(coords, osm_id, by = "L2"  )
 
-  ## make bLSmodelR source object
-  if(rename){
+  if(rename) {
     Sources <- genSources(as.data.frame(cbind(coord_dt[, .(L2, X, Y)], 1)))
-    } else {
+  } else {
     Sources <- genSources(as.data.frame(cbind(coord_dt[, .(osmID, X, Y)], 1)))
-    }
+  }
+
+  Sources
 }
+
+
+# create_polygons <- function(bottom, left, top, right, feature = 'building', transform  = TRUE, rename = TRUE){
+# browser()
+#   assign("has_internet_via_proxy", TRUE, environment(curl::has_internet)) # otherwise for unknow reason it does not work.
+#   options(osmdata.overpass_url = "https://overpass-api.de/api/interpreter")
+#   bbox <- opq(c(left, bottom, right, top))
+#   # browser()
+#   osm_feature <- add_osm_feature(bbox, key = feature)
+#   data_raw <- osmdata_sf(osm_feature)
+
+#   # Extract polygon data
+#   geometry_polygons <- data_raw$osm_polygons
+#   ## transform to Danish coordinate system
+#   if(transform){geometry_polygons$geometry <- st_transform(geometry_polygons$geometry, crs = "+proj=utm +zone=33 +datum=WGS84")}
+#   ## extract coordinates
+
+#   coords <- as.data.table(st_coordinates(geometry_polygons$geometry))
+#   osm_id <- data.table(osmID = geometry_polygons$osm_id, L2 = coords[, unique(L2)])
+#   coords[, L2 <- as.character(L2)]
+
+#   coord_dt <- merge(coords, osm_id, by = 'L2')
+
+#   ## make bLSmodelR source object
+#   if(rename){
+#     Sources <- genSources(as.data.frame(cbind(coord_dt[, .(L2, X, Y)], 1)))
+#     } else {
+#     Sources <- genSources(as.data.frame(cbind(coord_dt[, .(osmID, X, Y)], 1)))
+#     }
+# }
 
 create_points <- function(dt){
   Coord_sf <- st_as_sf(dt, coords = c("V2", "V3"), crs = 4326)
