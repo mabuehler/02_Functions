@@ -241,23 +241,15 @@ flag_drops <- function(dt, gas = 'CH4', mpv_positions) {
   return(dt)
 }
 
-##### 10. Unit conversion ppm & ppb to mg/m3:
-convert_to_mgm3 <- function(dt) {
-  R <- 8.31446261815324
-  molar_mass <- c(CO2 = 44.009, CH4 = 16.043, NH3 = 17.031, N2O = 44.013, H2O = 18.015)
-  for (gas in names(molar_mass)) {
-    if (gas == 'H2O') {
-      cal_col <- gas
-      out_col <- paste0(gas, "_mgm3")
-    } else {
-      cal_col <- paste0(gas, "_dry_cal")
-      out_col <- paste0(gas, "_dry_mgm3")
-    }
-    dt[MPVPosition == 3, (out_col) := (get(cal_col) * molar_mass[gas] * mean_pressure *
-          ifelse(gas == "NH3", 0.0001, ifelse(gas == "H2O", 1000, 0.1))) / (R * (Temp + 273.15))]
-    dt[MPVPosition != 3, (out_col) := (get(cal_col) * molar_mass[gas] * mean_pressure *
-          ifelse(gas == "NH3", 0.0001, ifelse(gas == "H2O", 1000, 0.1))) / (R * (mean_temp + 273.15))]
-  }
+##### 10. Unit conversion to ppm
+convert_to_ppm <- function(dt) {
+  dt[, CO2_dry_ppm := CO2_dry_cal]
+  dt[, CH4_dry_ppm := CH4_dry_cal]
+  dt[, N2O_dry_ppm := N2O_dry_cal]
+  # NH3: ppb -> ppm
+  dt[, NH3_dry_ppm := NH3_dry_cal / 1000]
+  # H2O: % -> ppm
+  dt[, H2O_ppm := H2O * 10000]
   return(dt)
 }
 
@@ -269,9 +261,9 @@ cal_mean_cycle <- function(dt, gases = c("CH4", "CO2", "NH3", "N2O")) {
   # Compute mean time per cycle
   dt[is.na(Flag_rm), mean_st := mean(st), by = N_cycle]
   for (g in gases) {
-    mgm3_col <- paste0(g, "_dry_mgm3")
-    mean_col <- paste0("mean_", g, "_dry")
-    dt[is.na(Flag_rm), (mean_col) := mean(get(mgm3_col), na.rm = TRUE), by = N_cycle]
+    conc_col <- paste0(g, "_dry_ppm")
+    mean_col <- paste0("mean_", g, "_dry_ppm")
+    dt[is.na(Flag_rm), (mean_col) := mean(get(conc_col), na.rm = TRUE), by = N_cycle]
   }
   # Calculate cycle duration in minutes
   dt[is.na(Flag_rm), min_perCycle := as.numeric(
@@ -284,9 +276,9 @@ cal_mean_cycle <- function(dt, gases = c("CH4", "CO2", "NH3", "N2O")) {
 ##### 12. plot the mean concentraion per cycle:
 plot_mean <- function(dt, gas = 'CH4') {
   # Top plot: gas concentration vs time with custom legend title
-  p1 <- ggplot(dt[is.na(Flag_rm)], aes(mean_st, get(paste0('mean_', gas, '_dry')), col = factor(MPVPosition_round))) + 
+  p1 <- ggplot(dt[is.na(Flag_rm)], aes(mean_st, get(paste0('mean_', gas, '_dry_ppm')), col = factor(MPVPosition_round))) + 
     geom_point() + 
-    ylab(paste0(gas, ' mg/m3')) + 
+    ylab(paste0(gas, ' ppm')) + 
     theme_bw() + 
     labs(color = "MPVPosition")
   
@@ -327,7 +319,7 @@ interpolate_background <- function(dt, bgd_pos, gases = c('CH4', 'CO2', 'NH3', '
   max_gap_seconds <- max_gap_hours * 3600
   for (pos in bgd_pos) {
     for (g in gases) {
-      mean_col <- paste0("mean_", g, "_dry")
+      mean_col <- paste0("mean_", g, "_dry_ppm")
       i_col <- paste0("i", pos, "_", mean_col)
       dt[is.na(Flag_rm) & MPVPosition_round == pos, (i_col) := get(mean_col)]
       dt <- dt[order(st)]
@@ -373,7 +365,7 @@ create_WD_sector <- function(start, end, bgd_pos) {
 
 
 ##### 15.Subtract background concentration:
-sub_background <- function(dt, WD_sectors, gases = c('CH4', 'CO2', 'NH3', 'N2O'), type = c('WD', 'min'), bgd_pos = NULL) {
+sub_background <- function(dt, WD_sectors, gases = c('CH4', 'CO2', 'NH3', 'N2O'), type = c('WD', 'min'), bgd_pos = NULL, sampling_line = 1) {
   # Initialize background columns to NA first
   for (g in gases) {
     bgd_col <- paste0(g, "_bgd")
@@ -384,7 +376,7 @@ sub_background <- function(dt, WD_sectors, gases = c('CH4', 'CO2', 'NH3', 'N2O')
     for (i in seq_len(nrow(WD_sectors))) {
       sector <- WD_sectors[i]
       for (g in gases) {
-        mean_col <- paste0("mean_", g, "_dry")
+        mean_col <- paste0("mean_", g, "_dry_ppm")
         bgd_col <- paste0(g, "_bgd")
         # Compose background columns for this sector positions and gas
         bg_cols <- paste0("i", unlist(sector$bgd_pos), "_", mean_col)
@@ -395,13 +387,13 @@ sub_background <- function(dt, WD_sectors, gases = c('CH4', 'CO2', 'NH3', 'N2O')
         }
         # browser()
         # Assign mean background value to the new bgd_col for matching rows
-        dt[cond & MPVPosition_round == 3, (bgd_col) := rowMeans(.SD, na.rm = TRUE), .SDcols = bg_cols]
+        dt[cond & MPVPosition_round == sampling_line, (bgd_col) := rowMeans(.SD, na.rm = TRUE), .SDcols = bg_cols]
       }
     }
   } else {
       for (g in gases) {
         # browser()
-        mean_col <- paste0("mean_", g, "_dry")
+        mean_col <- paste0("mean_", g, "_dry_ppm")
         bgd_col <- paste0(g, "_bgd")
         # chose background with lowest concentration
         if (is.null(bgd_pos)) {
@@ -411,16 +403,16 @@ sub_background <- function(dt, WD_sectors, gases = c('CH4', 'CO2', 'NH3', 'N2O')
         }
         # browser()
         # Assign mean background value to the new bgd_col for matching rows
-        dt[MPVPosition_round == 3, (bgd_col) := min(.SD, na.rm = TRUE), .SDcols = bg_cols, by = N_cycle]
+        dt[MPVPosition_round == sampling_line, (bgd_col) := min(.SD, na.rm = TRUE), .SDcols = bg_cols, by = N_cycle]
       }
   }
 
   # Now subtract background from sampling gas columns to get corrected
   for (g in gases) {
-    mean_col <- paste0("mean_", g, "_dry")
+    mean_col <- paste0("mean_", g, "_dry_ppm")
     bgd_col <- paste0(g, "_bgd")
     corr_col <- paste0(mean_col, "_corr")
-    dt[MPVPosition_round == 3, (corr_col) := get(mean_col) - get(bgd_col)]
+    dt[MPVPosition_round == sampling_line, (corr_col) := get(mean_col) - get(bgd_col)]
   }
 
   return(dt)
@@ -428,23 +420,26 @@ sub_background <- function(dt, WD_sectors, gases = c('CH4', 'CO2', 'NH3', 'N2O')
 
 
 ##### 16. Aggregate to hourly values and keep only relevant columns:
-aggregate_hourly <- function(dt) {
+aggregate_hourly <- function(dt, sampling_line = 1) {
   # browser()
   dt[, mean_st_floor := floor_date(mean_st, unit = "hour")]
 
-  dt_hour <- dt[is.na(Flag_rm) & MPVPosition_round == 3,
-    .(delta_CH4_mgm3 = mean(mean_CH4_dry_corr, na.rm = TRUE),
-      delta_CO2_mgm3 = mean(mean_CO2_dry_corr, na.rm = TRUE),
-      delta_NH3_mgm3 = mean(mean_NH3_dry_corr, na.rm = TRUE),
-      delta_N2O_mgm3 = mean(mean_N2O_dry_corr, na.rm = TRUE),
-      CH4_barn = mean(mean_CH4_dry, na.rm = TRUE),
-      CO2_barn = mean(mean_CO2_dry, na.rm = TRUE),
-      NH3_barn = mean(mean_NH3_dry, na.rm = TRUE),
-      N2O_barn = mean(mean_N2O_dry, na.rm = TRUE),
-      CH4_bgd = mean(CH4_bgd, na.rm = TRUE),
-      CO2_bgd = mean(CO2_bgd, na.rm = TRUE),
-      NH3_bgd = mean(NH3_bgd, na.rm = TRUE),
-      N2O_bgd = mean(N2O_bgd, na.rm = TRUE),
+  dt_hour <- dt[is.na(Flag_rm) & MPVPosition_round == sampling_line,
+    .(R_CH4 = mean(mean_CH4_dry_ppm_corr / mean_CO2_dry_ppm_corr, na.rm = TRUE),
+      R_NH3 = mean(mean_NH3_dry_ppm_corr / mean_CO2_dry_ppm_corr, na.rm = TRUE),
+      R_N2O = mean(mean_N2O_dry_ppm_corr / mean_CO2_dry_ppm_corr, na.rm = TRUE),
+      delta_CH4_ppm = mean(mean_CH4_dry_ppm_corr, na.rm = TRUE),
+      delta_CO2_ppm = mean(mean_CO2_dry_ppm_corr, na.rm = TRUE),
+      delta_NH3_ppm = mean(mean_NH3_dry_ppm_corr, na.rm = TRUE),
+      delta_N2O_ppm = mean(mean_N2O_dry_ppm_corr, na.rm = TRUE),
+      CH4_barn_ppm = mean(mean_CH4_dry_ppm, na.rm = TRUE),
+      CO2_barn_ppm = mean(mean_CO2_dry_ppm, na.rm = TRUE),
+      NH3_barn_ppm = mean(mean_NH3_dry_ppm, na.rm = TRUE),
+      N2O_barn_ppm = mean(mean_N2O_dry_ppm, na.rm = TRUE),
+      CH4_bgd_ppm = mean(CH4_bgd, na.rm = TRUE),
+      CO2_bgd_ppm = mean(CO2_bgd, na.rm = TRUE),
+      NH3_bgd_ppm = mean(NH3_bgd, na.rm = TRUE),
+      N2O_bgd_ppm = mean(N2O_bgd, na.rm = TRUE),
       Temp = mean(Temp, na.rm = TRUE),
       RH = mean(RH, na.rm = TRUE),
       Press = mean(mean_pressure, na.rm = TRUE),
@@ -461,7 +456,7 @@ aggregate_hourly <- function(dt) {
   dt_hour_full[, Day := as.IDate(DateTime)]
 
   dt[, mean_st_floor_new := floor_date(st, unit = 'hour')]
-  dt_hour_meteo <- dt[MPVPosition_round == 3,
+  dt_hour_meteo <- dt[MPVPosition_round == sampling_line,
       .(Temp = mean(Temp, na.rm = TRUE),
         RH = mean(RH, na.rm = TRUE),
         Press = mean(mean_pressure, na.rm = TRUE),
@@ -483,6 +478,7 @@ aggregate_hourly <- function(dt) {
   dt_hour_final[, c("Farm", "Period", "Device") := list(dt[!is.na(Farm), unique(Farm)], dt[!is.na(Period), unique(Period)], dt[!is.na(Device), unique(Device)])]
   return(dt_hour_final)
 }
+
 
 
 ##### 17. Convert date/time function often used:
