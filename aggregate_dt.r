@@ -75,3 +75,89 @@ aggregate_dt <- function(dt, by, cov_col = 'hours') {
   
   return(result)
 }
+
+
+
+average_by <- function(dt, by) {
+  
+  # Capture the expression supplied to 'by'
+  by_expr <- substitute(by)
+  
+  # Name of the grouping variable
+  by_name <- deparse(by_expr)
+  
+  # Evaluate the grouping expression
+  grouping <- eval(by_expr, envir = dt, enclos = parent.frame())
+  
+  # Check that grouping has one value per row
+  if (length(grouping) != nrow(dt)) {
+    stop("'by' must produce a vector with length nrow(dt)")
+  }
+  
+  # Work on a copy so the original dt is untouched
+  x <- copy(dt)
+  
+  # Unique temporary column name
+  tmp_group <- "..average_by_group"
+  
+  # Add grouping variable
+  x[, (tmp_group) := grouping]
+  
+  # Columns to aggregate
+  agg_cols <- names(dt)
+  
+  # Aggregate
+  result <- x[
+    ,
+    lapply(.SD, function(v) {
+      
+      if (inherits(v, "POSIXct")) {
+        
+        # Average POSIXct values and return POSIXct
+        tz <- attr(v, "tzone")
+        if (is.null(tz)) tz <- ""
+        
+        as.POSIXct(
+          mean(as.numeric(v), na.rm = TRUE),
+          origin = "1970-01-01",
+          tz = tz
+        )
+        
+      } else if (is.numeric(v)) {
+        
+        # Numeric and integer
+        mean(v, na.rm = TRUE)
+        
+      } else if (is.character(v) || is.logical(v)) {
+        
+        # Assumes values are identical within each group
+        idx <- which(!is.na(v))
+        
+        if (length(idx) > 0) {
+          v[idx[1L]]
+        } else {
+          v[NA_integer_]
+        }
+        
+      } else {
+        
+        # Fallback for other classes
+        idx <- which(!is.na(v))
+        
+        if (length(idx) > 0) {
+          v[idx[1L]]
+        } else {
+          v[NA_integer_]
+        }
+      }
+      
+    }),
+    by = tmp_group,
+    .SDcols = agg_cols
+  ]
+  
+  # Give the grouping column its appropriate name
+  setnames(result, tmp_group, by_name)
+  
+  result
+}
