@@ -13,7 +13,7 @@ library(data.table)
 library(readxl)
 
 
-readCompactGC <- function(path) {
+readCompactGC <- function(path, cut = TRUE) {
 	# browser()
 	files <- list.files(path, recursive = TRUE, full = TRUE, pattern = 'xls$')
 	## make a dt and consider only xls files
@@ -47,7 +47,7 @@ readCompactGC <- function(path) {
 	# as we have the 'summary', it is only needed to read in one file per P folder.
 	out <- lapply(1:dt_files[, .N], function(i) {
 		i_path <- dt_files[i, file]
-		dt_raw <- read_excel(i_path, sheet = 'Summary', skip = 13)
+		suppressWarnings(dt_raw <- read_excel(i_path, sheet = 'Summary', skip = 13))
 		setDT(dt_raw)
 		setnames(dt_raw, c('V1', 'name', 'ret_time', 'area', 'height', 'amount', 'rel_Area', 'peak_Type'))
 		## remove everything that is not a STEMUD sample
@@ -55,7 +55,7 @@ readCompactGC <- function(path) {
 		## make a sample column
 		dt[, sample := sub('.* - ', '', name)]
 		## make some columns numeric
-		dt[, c('ret_time', 'area', 'height', 'amount', 'rel_Area', 'sample') := lapply(.SD, as.numeric), .SDcols = c('ret_time', 'area', 'height', 'amount', 'rel_Area', 'sample')]
+		suppressWarnings(dt[, c('ret_time', 'area', 'height', 'amount', 'rel_Area', 'sample') := lapply(.SD, as.numeric), .SDcols = c('ret_time', 'area', 'height', 'amount', 'rel_Area', 'sample')])
 		## convert concentrations to real precentage
 		dt[, conc := round(amount / 100, 6)]
 		## set NA values to zero
@@ -64,9 +64,15 @@ readCompactGC <- function(path) {
 		dt$method <- dt_files[i, method]
 		dt$gas <- dt_files[i, gas]
 		dt$period <- dt_files[i, period]
+		# remove V1 column
+		dt[, V1 := NULL]
 		return(dt)
 	})
 	dt <- rbindlist(out)
+	dt <- dt[, .(sample, period, method, gas, ret_time, area, height, amount, rel_Area, peak_Type, conc)]
+	if(cut) {
+		dt <- dt[, .(sample, period, method, gas, conc, height)]
+	}
 	return(dt)
 }
 
