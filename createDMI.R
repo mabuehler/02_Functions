@@ -4,8 +4,8 @@ library(ibts)
 library(httr)
 library(jsonlite)
 
-createDMI <- function(API = NULL, cellId, req_datetime, req_parameter = c('mean_temp', 'mean_wind_dir', 'mean_wind_speed', 'mean_pressure', 'acc_precip'), 
-  url = 'https://dmigw.govcloud.dk/v2/climateData/collections/10kmGridValue/items?', resolution = 'hour') {
+createDMI <- function(cellId, req_datetime, req_parameter = c('mean_temp', 'mean_wind_dir', 'mean_wind_speed', 'mean_pressure', 'acc_precip'), 
+  url = 'https://opendataapi.dmi.dk/v2/climateData/collections/10kmGridValue/items?', resolution = 'hour') {
   ##### Define variables that are always the same:
   timeResolution <- paste0('timeResolution=', resolution)
   limit <- 'limit=300000' # max data
@@ -14,7 +14,7 @@ createDMI <- function(API = NULL, cellId, req_datetime, req_parameter = c('mean_
     par_list <- lapply(req_parameter, function(x) {
 # browser()
       parameterId <- paste0('parameterId=', x)
-      v7 <- GET(paste(url, cellId, datetime, parameterId, timeResolution, limit, API, sep = '&'))
+      v7 <- GET(paste(url, cellId, datetime, parameterId, timeResolution, limit, sep = '&'))
       data_raw <- fromJSON(rawToChar(v7$content))
       out <- as.data.table(data_raw[[2]][[4]])
       out[, st := as.POSIXct(from, format = '%Y-%m-%dT%H:%M:%S', tz = 'UTC')]
@@ -29,10 +29,10 @@ createDMI <- function(API = NULL, cellId, req_datetime, req_parameter = c('mean_
 }
 
 
-observationDMI <- function(API = NULL, stationId, req_datetime, req_parameter = c('temp_dry', 'wind_dir','wind_speed','pressure')) {
+observationDMI <- function(stationId, req_datetime, req_parameter = c('temp_dry', 'wind_dir','wind_speed','pressure')) {
 ##### Define variables that are always the same:
 # browser()
-  url <- 'https://dmigw.govcloud.dk/v2/metObs/collections/observation/items?'
+  url <- 'https://opendataapi.dmi.dk/v2/metObs/collections/observation/items?'
   limit <- 'limit=300000' # max data
   stationId <- as.character(stationId)
   if (nchar(stationId) == 4) {
@@ -61,12 +61,12 @@ observationDMI <- function(API = NULL, stationId, req_datetime, req_parameter = 
   DMI
 }
 
-stationDMI <- function(API, stationId = NULL) {
+stationDMI <- function(stationId = NULL) {
 ##### Define variables that are always the same:
 # browser()
-  url <- 'https://dmigw.govcloud.dk/v2/metObs/collections/station/items?'
+  url <- 'https://opendataapi.dmi.dk/v2/metObs/collections/station/items?'
   limit <- 'limit=300000' # max data
-  v7 <- GET(paste(url, limit, API, sep = '&'))
+  v7 <- GET(paste(url, limit, sep = '&'))
   data_raw <- fromJSON(rawToChar(v7$content))
   dt <- as.data.table(data_raw[[2]][[4]])
   if (!is.null(stationId)) {
